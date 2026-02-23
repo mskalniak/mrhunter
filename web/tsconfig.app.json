@@ -11,6 +11,7 @@
     "module": "ESNext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    "preserveSymlinks": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
