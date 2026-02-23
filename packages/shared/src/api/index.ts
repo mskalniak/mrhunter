@@ -1,1 +1,1 @@
-export { configureApi, habitApi } from "./client"
+export { configureApi, apiClient } from "./client"

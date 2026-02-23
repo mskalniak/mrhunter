@@ -12,10 +12,10 @@ export function configureApi(config: {
   getAuthToken = config.authToken
 }
 
-export async function habitApi<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiClient<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getAuthToken()
 
-  const res = await fetch(`${getApiUrl()}/api/habits${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",

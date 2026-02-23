@@ -1,6 +1,5 @@
 import express from "express"
 import cors from "cors"
-import { habitsRouter } from "./routes/habits.js"
 import { errorHandler } from "./middleware/error-handler.js"
 
 export const app = express()
@@ -15,9 +14,6 @@ app.get("/health", (_req, res) => {
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true })
 })
-
-app.use("/api/habits", habitsRouter)
-app.use("/habits", habitsRouter)
 
 app.use(errorHandler)
 

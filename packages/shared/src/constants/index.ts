@@ -1,1 +1,1 @@
-export { COLORS, ICON_NAMES } from "./colors"
+// Constants will be added as new features are built
