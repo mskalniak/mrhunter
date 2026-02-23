@@ -1,8 +1,21 @@
 // Types
-export type { AuthState } from "./types"
+export type {
+  AuthState,
+  SignalType,
+  LeadStatus,
+  IcpProfile,
+  ParsedIcpConfig,
+  Signal,
+  Lead,
+  LeadsResponse,
+  LeadDetailResponse,
+  SearchRun,
+  CreateIcpInput,
+  UpdateIcpInput,
+} from "./types"
 
 // API
-export { configureApi } from "./api"
+export { configureApi, apiClient } from "./api"
 
 // Lib
 export { createQueryClient } from "./lib"
