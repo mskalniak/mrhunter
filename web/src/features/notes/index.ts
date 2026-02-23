@@ -1,0 +1,1 @@
+export { NotesRoutes } from "./routes"
