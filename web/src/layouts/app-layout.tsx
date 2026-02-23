@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { LogOut, LayoutGrid, Settings } from "lucide-react"
+import { LogOut, LayoutGrid, Settings, History } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/features/auth"
 import { useLogout } from "@/features/auth"
@@ -71,6 +71,12 @@ export function AppLayout() {
             className={`app-bottom-btn ${location.pathname === "/" ? "app-bottom-btn-active" : ""}`}
           >
             <LayoutGrid size={22} />
+          </Link>
+          <Link
+            to="/search-history"
+            className={`app-bottom-btn ${location.pathname === "/search-history" ? "app-bottom-btn-active" : ""}`}
+          >
+            <History size={22} />
           </Link>
           <Link
             to="/settings"
