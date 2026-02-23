@@ -85,17 +85,17 @@ export function LoginPage() {
         <div className="login-card">
           {/* Left: Branding */}
           <div className="login-brand">
-            <p className="login-logo">BEYOND+</p>
+            <p className="login-logo">Cauliflower</p>
             <h1 className="login-heading">
-              Life<br />
-              <span className="login-heading-bold">Harmony.</span>
+              Lead<br />
+              <span className="login-heading-bold">Intelligence.</span>
             </h1>
             <p className="login-tagline">
               {step === "email"
-                ? "Build better habits, find your balance, and go beyond what you thought possible."
+                ? "Find high-intent B2B leads on LinkedIn with AI-powered intent signal detection."
                 : "We've sent a verification code to your inbox. Enter it on the right to continue."}
             </p>
-            <p className="login-url">BEYONDPLUS.APP</p>
+            <p className="login-url">CAULIFLOWER.APP</p>
           </div>
 
           {/* Right: Form */}
@@ -105,7 +105,7 @@ export function LoginPage() {
             </h2>
             <p className="login-form-subtitle">
               {step === "email"
-                ? "Sign in to track your habits"
+                ? "Sign in to start hunting leads"
                 : "Check your email for the code"}
             </p>
 
