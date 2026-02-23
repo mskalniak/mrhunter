@@ -1,5 +1,9 @@
 import express from "express"
 import cors from "cors"
+import { icpRouter } from "./routes/icp.js"
+import { leadsRouter } from "./routes/leads.js"
+import { searchRouter } from "./routes/search.js"
+import { cronRouter } from "./routes/cron.js"
 import { errorHandler } from "./middleware/error-handler.js"
 
 export const app = express()
@@ -14,6 +18,11 @@ app.get("/health", (_req, res) => {
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true })
 })
+
+app.use("/api/icp", icpRouter)
+app.use("/api/leads", leadsRouter)
+app.use("/api/search", searchRouter)
+app.use("/api/cron", cronRouter)
 
 app.use(errorHandler)
 
