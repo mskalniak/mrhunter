@@ -5,6 +5,7 @@ import { leadsRouter } from "./routes/leads.js"
 import { searchRouter } from "./routes/search.js"
 import { cronRouter } from "./routes/cron.js"
 import { onboardingRouter } from "./routes/onboarding.js"
+import { signalsRouter } from "./routes/signals.js"
 import { errorHandler } from "./middleware/error-handler.js"
 
 export const app = express()
@@ -25,6 +26,7 @@ app.use("/api/leads", leadsRouter)
 app.use("/api/search", searchRouter)
 app.use("/api/cron", cronRouter)
 app.use("/api/onboarding", onboardingRouter)
+app.use("/api/signals", signalsRouter)
 
 app.use(errorHandler)
 
