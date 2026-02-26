@@ -2,6 +2,8 @@
 export type {
   AuthState,
   SignalType,
+  SignalStrength,
+  SignalCategory,
   LeadStatus,
   IcpProfile,
   ParsedIcpConfig,

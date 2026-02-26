@@ -6,6 +6,14 @@ export type SignalType =
   | "role_change"
   | "event"
 
+export type SignalStrength = "critical" | "high" | "medium" | "low"
+
+export type SignalCategory =
+  | "content-engagement"
+  | "content-creation"
+  | "career-changes"
+  | "hiring"
+
 export type LeadStatus = "new" | "viewed" | "saved" | "dismissed"
 
 export type IcpProfile = {

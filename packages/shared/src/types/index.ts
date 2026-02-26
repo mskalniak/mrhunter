@@ -1,6 +1,8 @@
 export type { AuthState } from "./auth"
 export type {
   SignalType,
+  SignalStrength,
+  SignalCategory,
   LeadStatus,
   IcpProfile,
   ParsedIcpConfig,
