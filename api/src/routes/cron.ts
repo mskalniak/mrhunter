@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { supabaseAdmin } from "../lib/supabase.js"
 import { getRequiredCronEnv } from "../config/env.js"
-import { runSearchPipeline } from "../services/search-pipeline.service.js"
+import { runSignalDetection } from "../signals/runner.js"
 
 export const cronRouter = Router()
 
@@ -29,9 +29,9 @@ cronRouter.post("/search", async (req, res, next) => {
       return
     }
 
-    // Run pipeline for each active profile
+    // Run signal detection for each active profile
     const results = await Promise.allSettled(
-      profiles.map((p: { user_id: string; id: string }) => runSearchPipeline(p.user_id, p.id, "cron"))
+      profiles.map((p: { user_id: string; id: string }) => runSignalDetection(p.user_id, p.id))
     )
 
     const succeeded = results.filter((r) => r.status === "fulfilled").length

@@ -1,13 +1,13 @@
 import { Router } from "express"
 import { requireAuth } from "../middleware/auth.js"
 import { supabaseAdmin } from "../lib/supabase.js"
-import { runSearchPipeline } from "../services/search-pipeline.service.js"
+import { runSignalDetection } from "../signals/runner.js"
 import * as icpService from "../services/icp.service.js"
 
 export const searchRouter = Router()
 searchRouter.use(requireAuth)
 
-// POST /api/search/run — trigger manual search
+// POST /api/search/run — trigger manual search via signal detection
 searchRouter.post("/run", async (req, res, next) => {
   try {
     const icp = await icpService.getActiveIcpProfile(req.userId)
@@ -16,10 +16,14 @@ searchRouter.post("/run", async (req, res, next) => {
       return
     }
 
-    // Start pipeline (don't await — return immediately)
-    const resultPromise = runSearchPipeline(req.userId, icp.id, "manual")
+    // Start signal detection in background
+    runSignalDetection(req.userId, icp.id)
+      .then((result) => console.log("[search/run] Signal detection completed:", result))
+      .catch((err) => console.error("[search/run] Signal detection failed:", err))
 
-    // Return the search run ID quickly
+    // Wait briefly for the search_run record to be created
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
     const { data: latestRun } = await supabaseAdmin
       .from("search_runs")
       .select("id")
@@ -28,11 +32,6 @@ searchRouter.post("/run", async (req, res, next) => {
       .order("started_at", { ascending: false })
       .limit(1)
       .single()
-
-    // Still await the result so errors are logged
-    resultPromise.catch((err) => {
-      console.error("Manual search pipeline failed:", err)
-    })
 
     res.json({ search_run_id: latestRun?.id, status: "running" })
   } catch (err) {

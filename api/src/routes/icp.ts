@@ -3,7 +3,7 @@ import { z } from "zod"
 import { requireAuth } from "../middleware/auth.js"
 import { validate } from "../middleware/validate.js"
 import * as icpService from "../services/icp.service.js"
-import { runSearchPipeline } from "../services/search-pipeline.service.js"
+import { runSignalDetection } from "../signals/runner.js"
 import { supabaseAdmin } from "../lib/supabase.js"
 
 export const icpRouter = Router()
@@ -31,9 +31,9 @@ icpRouter.post("/", validate(createSchema), async (req, res, next) => {
 
     const profile = await icpService.createIcpProfile(req.userId, req.body.raw_prompt)
 
-    // Trigger first search in background (don't await)
-    runSearchPipeline(req.userId, profile.id, "manual").catch((err) => {
-      console.error("First search pipeline failed:", err)
+    // Trigger first signal detection in background (don't await)
+    runSignalDetection(req.userId, profile.id).catch((err) => {
+      console.error("First signal detection failed:", err)
     })
 
     res.status(201).json({ profile })

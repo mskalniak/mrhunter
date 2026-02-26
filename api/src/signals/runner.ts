@@ -33,6 +33,7 @@ async function fetchCompetitorPosts(
         postedLimit,
         scrapePostedLimit,
         sortBy: "date",
+        maxPosts,
       })
 
       const slicedPosts = posts.slice(0, maxPosts)
@@ -40,7 +41,7 @@ async function fetchCompetitorPosts(
 
       for (const post of slicedPosts) {
         try {
-          const comments = await harvest.getPostComments(post.linkedinUrl)
+          const comments = await harvest.getPostComments(post.linkedinUrl, { maxItems: maxCommentsPerPost })
           commentsByPostUrl.set(post.linkedinUrl, comments.slice(0, maxCommentsPerPost))
         } catch {
           // Skip individual post comment failures
@@ -59,53 +60,70 @@ async function fetchCompetitorPosts(
 async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
   const { competitors, keywords, titles, location } = icp
 
-  // ── Competitor posts (week) + comments — 3 comp × (1 search + 3 comment) = 12 calls
+  console.log("[prefetch] ICP config:")
+  console.log(`  competitors: [${competitors.join(", ")}] (${competitors.length})`)
+  console.log(`  keywords: [${keywords.join(", ")}] (${keywords.length})`)
+  console.log(`  titles: [${titles.join(", ")}] (${titles.length})`)
+  console.log(`  location: ${location ?? "(none)"}`)
+
+  // ── Competitor posts (week) + comments
   console.log("[prefetch] Fetching competitor posts (week)...")
   const competitorWeek = await fetchCompetitorPosts(competitors, "week", "week", 3, 20)
+  for (const cw of competitorWeek) {
+    const totalComments = [...cw.commentsByPostUrl.values()].reduce((s, c) => s + c.length, 0)
+    console.log(`[prefetch]   ${cw.competitor}: ${cw.posts.length} posts, ${totalComments} comments`)
+  }
 
-  // ── Competitor posts (month) + comments — 3 comp × (1 search + 3 comment) = 12 calls
+  // ── Competitor posts (month) + comments
   console.log("[prefetch] Fetching competitor posts (month)...")
   const competitorMonth = await fetchCompetitorPosts(competitors, "month", "month", 3, 20)
+  for (const cm of competitorMonth) {
+    const totalComments = [...cm.commentsByPostUrl.values()].reduce((s, c) => s + c.length, 0)
+    console.log(`[prefetch]   ${cm.competitor}: ${cm.posts.length} posts, ${totalComments} comments`)
+  }
 
-  // ── Keyword posts — 3 keyword searches = 3 calls
+  // ── Keyword posts
   console.log("[prefetch] Fetching keyword posts...")
   const keywordPosts = new Map<string, harvest.HarvestPost[]>()
   for (const keyword of keywords.slice(0, 3)) {
     try {
-      const posts = await harvest.searchPosts(keyword, { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" })
+      const posts = await harvest.searchPosts(keyword, { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 })
       keywordPosts.set(keyword, posts.slice(0, 15))
-    } catch {
-      // Skip
+      console.log(`[prefetch]   "${keyword}": ${posts.length} posts`)
+    } catch (err) {
+      console.error(`[prefetch]   "${keyword}": FAILED -`, err instanceof Error ? err.message : err)
     }
   }
 
-  // ── Recommendation posts — 1 combined search = 1 call
+  // ── Recommendation posts
   console.log("[prefetch] Fetching recommendation posts...")
   let recommendationPosts: harvest.HarvestPost[] = []
   try {
     const posts = await harvest.searchPosts(
       "who can recommend OR looking for recommendations OR any suggestions for",
-      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" },
+      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 },
     )
     recommendationPosts = posts.slice(0, 15)
-  } catch {
-    // Skip
+    console.log(`[prefetch]   recommendation posts: ${recommendationPosts.length}`)
+  } catch (err) {
+    console.error("[prefetch]   recommendation posts: FAILED -", err instanceof Error ? err.message : err)
   }
 
-  // ── Demo/trial posts — 1 combined search = 1 call
+  // ── Demo/trial posts
   console.log("[prefetch] Fetching demo/trial posts...")
   let demoTrialPosts: harvest.HarvestPost[] = []
   try {
     const posts = await harvest.searchPosts(
       "looking for demo OR free trial OR want to try",
-      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" },
+      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 },
     )
     demoTrialPosts = posts.slice(0, 15)
-  } catch {
-    // Skip
+    console.log(`[prefetch]   demo/trial posts: ${demoTrialPosts.length}`)
+  } catch (err) {
+    console.error("[prefetch]   demo/trial posts: FAILED -", err instanceof Error ? err.message : err)
   }
 
-  // ── New role posts — 1 call
+  // ── New role posts
   console.log("[prefetch] Fetching new role posts...")
   let newRolePosts: harvest.HarvestPost[] = []
   try {
@@ -113,25 +131,32 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
       postedLimit: "week",
       scrapePostedLimit: "week",
       sortBy: "date",
+      maxPosts: 20,
     })
     newRolePosts = posts.slice(0, 20)
-  } catch {
-    // Skip
+    console.log(`[prefetch]   new role posts: ${newRolePosts.length}`)
+  } catch (err) {
+    console.error("[prefetch]   new role posts: FAILED -", err instanceof Error ? err.message : err)
   }
 
-  // ── Profile searches — 3 title searches = 3 calls
+  // ── Profile searches
   console.log("[prefetch] Fetching profiles...")
   const profilesByTitle = new Map<string, harvest.HarvestProfileSearchResult[]>()
   for (const title of titles.slice(0, 3)) {
     try {
-      const profiles = await harvest.searchProfiles(title, { title, location })
+      const profiles = await harvest.searchProfiles(title, {
+        currentJobTitles: [title],
+        locations: location ? [location] : undefined,
+        maxItems: 5,
+      })
       profilesByTitle.set(title, profiles.slice(0, 5))
-    } catch {
-      // Skip
+      console.log(`[prefetch]   "${title}": ${profiles.length} profiles`)
+    } catch (err) {
+      console.error(`[prefetch]   "${title}": FAILED -`, err instanceof Error ? err.message : err)
     }
   }
 
-  // ── Full profiles — up to 15 getProfile calls (3 titles × 5 profiles)
+  // ── Full profiles
   console.log("[prefetch] Fetching full profiles...")
   const fullProfiles = new Map<string, harvest.HarvestProfile>()
   for (const [, results] of profilesByTitle) {
@@ -140,33 +165,36 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
       try {
         const profile = await harvest.getProfile(result.linkedinUrl)
         if (profile) fullProfiles.set(result.linkedinUrl, profile)
-      } catch {
-        // Skip
+      } catch (err) {
+        console.error(`[prefetch]   profile ${result.linkedinUrl}: FAILED -`, err instanceof Error ? err.message : err)
       }
     }
   }
+  console.log(`[prefetch]   full profiles fetched: ${fullProfiles.size}`)
 
-  // ── Job searches (week) — 3 title searches = 3 calls
+  // ── Job searches (week)
   console.log("[prefetch] Fetching jobs (week)...")
   const jobsByTitleWeek = new Map<string, harvest.HarvestJob[]>()
   for (const title of titles.slice(0, 3)) {
     try {
-      const jobs = await harvest.searchJobs(title, { postedLimit: "week", sortBy: "date", location })
+      const jobs = await harvest.searchJobs(title, { postedLimit: "week", sortBy: "date", locations: location ? [location] : undefined, maxItems: 10 })
       jobsByTitleWeek.set(title, jobs.slice(0, 10))
-    } catch {
-      // Skip
+      console.log(`[prefetch]   "${title}": ${jobs.length} jobs (week)`)
+    } catch (err) {
+      console.error(`[prefetch]   "${title}" jobs (week): FAILED -`, err instanceof Error ? err.message : err)
     }
   }
 
-  // ── Job searches (month) — 3 title searches = 3 calls
+  // ── Job searches (month)
   console.log("[prefetch] Fetching jobs (month)...")
   const jobsByTitleMonth = new Map<string, harvest.HarvestJob[]>()
   for (const title of titles.slice(0, 3)) {
     try {
-      const jobs = await harvest.searchJobs(title, { postedLimit: "month", sortBy: "date", location })
+      const jobs = await harvest.searchJobs(title, { postedLimit: "month", sortBy: "date", locations: location ? [location] : undefined, maxItems: 20 })
       jobsByTitleMonth.set(title, jobs.slice(0, 20))
-    } catch {
-      // Skip
+      console.log(`[prefetch]   "${title}": ${jobs.length} jobs (month)`)
+    } catch (err) {
+      console.error(`[prefetch]   "${title}" jobs (month): FAILED -`, err instanceof Error ? err.message : err)
     }
   }
 
@@ -193,6 +221,9 @@ export async function runSignalDetection(
   userId: string,
   icpProfileId: string,
 ): Promise<SignalRunResult> {
+  console.log(`\n========== SIGNAL DETECTION START ==========`)
+  console.log(`[signals] userId=${userId}, icpProfileId=${icpProfileId}`)
+
   // 1. Load ICP profile
   const { data: icp, error: icpError } = await supabaseAdmin
     .from("icp_profiles")
@@ -201,7 +232,12 @@ export async function runSignalDetection(
     .eq("user_id", userId)
     .single()
 
-  if (icpError || !icp) throw new Error("ICP profile not found")
+  if (icpError || !icp) {
+    console.error(`[signals] ICP profile not found:`, icpError?.message ?? "no data")
+    throw new Error("ICP profile not found")
+  }
+  console.log(`[signals] ICP loaded: "${icp.raw_prompt?.slice(0, 80)}..."`)
+  console.log(`[signals] parsed_config:`, JSON.stringify(icp.parsed_config, null, 2))
 
   // 2. Create search_run record
   const { data: searchRun, error: runError } = await supabaseAdmin

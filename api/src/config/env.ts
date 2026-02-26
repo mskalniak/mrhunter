@@ -6,7 +6,7 @@ const envSchema = z.object({
   SERPER_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
-  HARVEST_API_KEY: z.string().min(1).optional(),
+  APIFY_TOKEN: z.string().min(1).optional(),
   PORT: z.coerce.number().default(3001),
 })
 
@@ -45,10 +45,10 @@ export function getRequiredCronEnv() {
   return cronEnvSchema.parse(process.env)
 }
 
-const harvestEnvSchema = z.object({
-  HARVEST_API_KEY: z.string().min(1),
+const apifyEnvSchema = z.object({
+  APIFY_TOKEN: z.string().min(1),
 })
 
-export function getRequiredHarvestEnv() {
-  return harvestEnvSchema.parse(process.env)
+export function getRequiredApifyEnv() {
+  return apifyEnvSchema.parse(process.env)
 }

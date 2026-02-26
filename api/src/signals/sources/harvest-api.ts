@@ -1,22 +1,15 @@
-import { getRequiredHarvestEnv } from "../../config/env.js"
+import { getRequiredApifyEnv } from "../../config/env.js"
 
 // ── Types ──────────────────────────────────────────────────────────────
-
-export type HarvestPagination = {
-  totalPages: number
-  totalElements: number
-  pageNumber: number
-  previousElements: number
-  pageSize: number
-  paginationToken: string | null
-}
 
 export type HarvestPostAuthor = {
   publicIdentifier: string
   universalName?: string
+  type?: string
   name: string
   linkedinUrl: string
-  avatar?: string
+  info?: string
+  avatar?: string | { url: string; width?: number; height?: number }
 }
 
 export type HarvestPost = {
@@ -31,9 +24,11 @@ export type HarvestPost = {
     postedAgoText?: string
   }
   engagement?: {
+    id?: string
     likes?: number
     comments?: number
     shares?: number
+    reactions?: Array<{ type: string; count: number }>
   }
 }
 
@@ -65,15 +60,16 @@ export type HarvestProfile = {
   about?: string
   linkedinUrl: string
   photo?: string
+  profilePicture?: { url: string }
   connectionsCount?: number
   followerCount?: number
   openToWork?: boolean
   hiring?: boolean
   location?: {
     linkedinText: string
-    parsed?: { country: string; state?: string; city?: string }
+    parsed?: { country?: string; state?: string; city?: string; text?: string; countryCode?: string }
   }
-  currentPosition?: Array<{ companyName: string; position?: string }>
+  currentPosition?: Array<{ companyName: string; position?: string; companyLinkedinUrl?: string }>
   experience?: Array<{
     companyName: string
     position: string
@@ -84,18 +80,22 @@ export type HarvestProfile = {
     startDate?: { month?: string; year?: number; text?: string }
     endDate?: { month?: string; year?: number; text?: string }
   }>
-  skills?: Array<{ name: string }>
+  skills?: Array<{ name: string; endorsements?: string }>
   certifications?: Array<{ title: string; issuedAt?: string; issuedBy?: string }>
 }
 
 export type HarvestProfileSearchResult = {
   id: string
   publicIdentifier: string
-  name: string
-  position: string
+  firstName?: string
+  lastName?: string
+  name?: string
+  headline?: string
+  position?: string
   location?: { linkedinText: string }
   linkedinUrl: string
   photo?: string
+  profilePicture?: { url: string }
 }
 
 export type HarvestJob = {
@@ -108,7 +108,7 @@ export type HarvestJob = {
   descriptionHtml?: string
   location?: {
     linkedinText?: string
-    parsed?: { country?: string; state?: string; city?: string }
+    parsed?: { country?: string; state?: string; city?: string; text?: string }
   }
   employmentType?: string
   workplaceType?: string
@@ -116,56 +116,62 @@ export type HarvestJob = {
   company?: {
     name: string
     id?: string
+    universalName?: string
     linkedinUrl?: string
     logo?: string
     employeeCount?: number
     description?: string
-    industries?: string[]
+    industries?: Array<string | { name: string }>
   }
+  experienceLevel?: string
+  salary?: { text?: string | null; min?: number | null; max?: number | null }
 }
 
 // ── Option types ───────────────────────────────────────────────────────
 
 export type PostSearchOpts = {
-  company?: string
-  authorsCompany?: string
-  authorsIndustryId?: string
-  mentioningMember?: string
-  mentioningCompany?: string
+  authorsCompanies?: string[]
+  authorsIndustryId?: string[]
+  mentioningMember?: string[]
+  mentioningCompany?: string[]
   contentType?: string
-  postedLimit?: "24h" | "week" | "month"
+  postedLimit?: "any" | "1h" | "24h" | "week" | "month" | "3months" | "6months" | "year"
   scrapePostedLimit?: "1h" | "24h" | "week" | "month" | "3months" | "6months" | "year"
   sortBy?: "relevance" | "date"
-  page?: number
+  maxPosts?: number
+}
+
+export type CommentSearchOpts = {
+  postedLimit?: "any" | "24h" | "week" | "month" | "3months" | "6months" | "year"
+  scrapeReplies?: boolean
+  maxItems?: number
 }
 
 export type JobSearchOpts = {
-  location?: string
-  companyId?: string
+  locations?: string[]
+  company?: string[]
   sortBy?: "relevance" | "date"
-  workplaceType?: string
-  employmentType?: string
-  experienceLevel?: string
-  postedLimit?: string
-  page?: number
+  workplaceType?: string[]
+  employmentType?: string[]
+  experienceLevel?: string[]
+  postedLimit?: "1h" | "24h" | "week" | "month"
+  maxItems?: number
 }
 
 export type ProfileSearchOpts = {
-  currentCompany?: string
-  title?: string
-  location?: string
-  geoId?: string
-  industryId?: string
-  page?: number
+  currentCompanies?: string[]
+  currentJobTitles?: string[]
+  locations?: string[]
+  industryIds?: string[]
+  maxItems?: number
 }
 
 // ── Budget & rate limiting ────────────────────────────────────────────
 
-const BASE_URL = "https://api.harvest-api.com"
-const RATE_LIMIT_MS = 500
-const DEFAULT_MAX_REQUESTS = 100
+const APIFY_BASE_URL = "https://api.apify.com/v2"
+const DEFAULT_TIMEOUT_SECS = 120
+const DEFAULT_MAX_REQUESTS = 50
 
-let lastRequestTime = 0
 let requestCount = 0
 let requestBudget = DEFAULT_MAX_REQUESTS
 const responseCache = new Map<string, unknown>()
@@ -182,93 +188,68 @@ export function getBudgetStatus(): { used: number; remaining: number; budget: nu
   return { used: requestCount, remaining: requestBudget - requestCount, budget: requestBudget }
 }
 
-/** Returns true if budget is exhausted. Detectors should check this. */
+/** Returns true if budget is exhausted. */
 export function isBudgetExhausted(): boolean {
   return requestCount >= requestBudget
 }
 
-async function rateLimitDelay(): Promise<void> {
-  const now = Date.now()
-  const elapsed = now - lastRequestTime
-  if (elapsed < RATE_LIMIT_MS) {
-    await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS - elapsed))
-  }
-  lastRequestTime = Date.now()
-}
+// ── Cache key helper ─────────────────────────────────────────────────
 
-type HarvestResponse<T> = {
-  elements?: T[]
-  element?: T
-  pagination?: HarvestPagination
-  status?: string
-  error?: string
-}
-
-function cacheKey(
-  endpoint: string,
-  params: Record<string, string | number | string[] | undefined>,
-): string {
-  const sorted = Object.entries(params)
-    .filter(([, v]) => v !== undefined)
+function makeCacheKey(actorId: string, input: Record<string, unknown>): string {
+  const sorted = Object.entries(input)
+    .filter(([, v]) => v !== undefined && v !== null)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join(",") : v}`)
+    .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
     .join("&")
-  return `${endpoint}?${sorted}`
+  return `${actorId}?${sorted}`
 }
 
-async function harvestFetch<T>(
-  endpoint: string,
-  params: Record<string, string | number | string[] | undefined>,
-): Promise<HarvestResponse<T>> {
-  const key = cacheKey(endpoint, params)
+// ── Core Apify fetch ─────────────────────────────────────────────────
+
+async function apifyRunActor<T>(
+  actorId: string,
+  input: Record<string, unknown>,
+): Promise<T[]> {
+  const key = makeCacheKey(actorId, input)
   const cached = responseCache.get(key)
   if (cached) {
-    console.log(`[harvest] Cache hit: ${endpoint}`)
-    return cached as HarvestResponse<T>
+    console.log(`[apify] Cache hit: ${actorId}`)
+    return cached as T[]
   }
-
-  const { HARVEST_API_KEY } = getRequiredHarvestEnv()
 
   if (isBudgetExhausted()) {
-    throw new Error(`HarvestAPI budget exhausted (${requestBudget} requests). Skipping ${endpoint}`)
+    throw new Error(`Apify budget exhausted (${requestBudget} requests). Skipping ${actorId}`)
   }
 
-  await rateLimitDelay()
   requestCount++
-
   const { used, remaining } = getBudgetStatus()
-  if (remaining <= 10) {
-    console.warn(`[harvest] Budget warning: ${used}/${requestBudget} requests used, ${remaining} remaining`)
+  console.log(`[apify] #${used} ${actorId} input=${JSON.stringify(input).slice(0, 120)}`)
+  if (remaining <= 5) {
+    console.warn(`[apify] Budget warning: ${used}/${requestBudget} requests used, ${remaining} remaining`)
   }
 
-  const url = new URL(endpoint, BASE_URL)
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined) continue
-    if (Array.isArray(value)) {
-      for (const v of value) {
-        url.searchParams.append(key, v)
-      }
-    } else {
-      url.searchParams.set(key, String(value))
-    }
-  }
+  const { APIFY_TOKEN } = getRequiredApifyEnv()
+  const url = `${APIFY_BASE_URL}/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=${DEFAULT_TIMEOUT_SECS}`
 
-  const response = await fetch(url.toString(), {
-    method: "GET",
+  const response = await fetch(url, {
+    method: "POST",
     headers: {
-      "X-API-Key": HARVEST_API_KEY,
-      Accept: "application/json",
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(input),
   })
 
   if (!response.ok) {
     const text = await response.text().catch(() => "unknown error")
-    throw new Error(`HarvestAPI ${endpoint} failed (${response.status}): ${text}`)
+    console.error(`[apify] FAIL ${response.status}: ${actorId} — ${text.slice(0, 300)}`)
+    throw new Error(`Apify ${actorId} failed (${response.status}): ${text.slice(0, 200)}`)
   }
 
-  const data = await (response.json() as Promise<HarvestResponse<T>>)
+  const data = (await response.json()) as T[]
+  const count = Array.isArray(data) ? data.length : 0
+  console.log(`[apify] OK ${actorId} → ${count} results`)
   responseCache.set(key, data)
-  return data
+  return Array.isArray(data) ? data : []
 }
 
 // ── Public API ─────────────────────────────────────────────────────────
@@ -277,51 +258,76 @@ export async function searchPosts(
   search: string,
   opts?: PostSearchOpts,
 ): Promise<HarvestPost[]> {
-  const res = await harvestFetch<HarvestPost>("/linkedin/post-search", {
-    search,
-    ...opts,
-  })
-  return res.elements ?? []
+  const input: Record<string, unknown> = {
+    searchQueries: [search],
+    maxPosts: opts?.maxPosts ?? 20,
+    sortBy: opts?.sortBy ?? "date",
+  }
+  if (opts?.postedLimit) input.postedLimit = opts.postedLimit
+  if (opts?.scrapePostedLimit) input.postedLimit = opts.scrapePostedLimit // Apify uses single postedLimit
+  if (opts?.authorsCompanies) input.authorsCompanies = opts.authorsCompanies
+  if (opts?.authorsIndustryId) input.authorsIndustryId = opts.authorsIndustryId
+  if (opts?.mentioningMember) input.mentioningMember = opts.mentioningMember
+  if (opts?.mentioningCompany) input.mentioningCompany = opts.mentioningCompany
+  if (opts?.contentType) input.contentType = opts.contentType
+
+  return apifyRunActor<HarvestPost>("harvestapi~linkedin-post-search", input)
 }
 
 export async function getPostComments(
   postUrl: string,
-  opts?: { page?: number },
+  opts?: CommentSearchOpts,
 ): Promise<HarvestComment[]> {
-  const res = await harvestFetch<HarvestComment>("/linkedin/post-comments", {
-    url: postUrl,
-    ...opts,
-  })
-  return res.elements ?? []
+  const input: Record<string, unknown> = {
+    posts: [postUrl],
+    maxItems: opts?.maxItems ?? 10,
+  }
+  if (opts?.postedLimit) input.postedLimit = opts.postedLimit
+  if (opts?.scrapeReplies !== undefined) input.scrapeReplies = opts.scrapeReplies
+
+  return apifyRunActor<HarvestComment>("harvestapi~linkedin-post-comments", input)
 }
 
 export async function getProfile(
   linkedinUrl: string,
 ): Promise<HarvestProfile | null> {
-  const res = await harvestFetch<HarvestProfile>("/linkedin/profile", {
-    url: linkedinUrl,
+  const results = await apifyRunActor<HarvestProfile>("harvestapi~linkedin-profile-scraper", {
+    urls: [linkedinUrl],
   })
-  return res.elements?.[0] ?? (res as HarvestResponse<HarvestProfile>).element ?? null
+  return results[0] ?? null
 }
 
 export async function searchProfiles(
   search: string,
   opts?: ProfileSearchOpts,
 ): Promise<HarvestProfileSearchResult[]> {
-  const res = await harvestFetch<HarvestProfileSearchResult>("/linkedin/profile-search", {
-    search,
-    ...opts,
-  })
-  return res.elements ?? []
+  const input: Record<string, unknown> = {
+    searchQuery: search,
+    maxItems: opts?.maxItems ?? 20,
+  }
+  if (opts?.locations) input.locations = opts.locations
+  if (opts?.currentCompanies) input.currentCompanies = opts.currentCompanies
+  if (opts?.currentJobTitles) input.currentJobTitles = opts.currentJobTitles
+  if (opts?.industryIds) input.industryIds = opts.industryIds
+
+  return apifyRunActor<HarvestProfileSearchResult>("harvestapi~linkedin-profile-search", input)
 }
 
 export async function searchJobs(
   search: string,
   opts?: JobSearchOpts,
 ): Promise<HarvestJob[]> {
-  const res = await harvestFetch<HarvestJob>("/linkedin/job-search", {
-    search,
-    ...opts,
-  })
-  return res.elements ?? []
+  const input: Record<string, unknown> = {
+    jobTitles: [search],
+    maxItems: opts?.maxItems ?? 10,
+    sortBy: opts?.sortBy ?? "date",
+  }
+  if (opts?.locations) input.locations = opts.locations
+  if (opts?.postedLimit) input.postedLimit = opts.postedLimit
+  if (opts?.company) input.company = opts.company
+  if (opts?.workplaceType) input.workplaceType = opts.workplaceType
+  if (opts?.employmentType) input.employmentType = opts.employmentType
+  if (opts?.experienceLevel) input.experienceLevel = opts.experienceLevel
+
+  return apifyRunActor<HarvestJob>("harvestapi~linkedin-job-search", input)
 }

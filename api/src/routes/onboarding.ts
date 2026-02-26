@@ -4,7 +4,7 @@ import { requireAuth } from "../middleware/auth.js"
 import { validate } from "../middleware/validate.js"
 import { processOnboardingChat } from "../services/onboarding.service.js"
 import { createIcpFromOnboarding } from "../services/icp.service.js"
-import { runSearchPipeline } from "../services/search-pipeline.service.js"
+import { runSignalDetection } from "../signals/runner.js"
 
 export const onboardingRouter = Router()
 onboardingRouter.use(requireAuth)
@@ -36,8 +36,8 @@ onboardingRouter.post("/complete", validate(completeSchema), async (req, res, ne
   try {
     const profile = await createIcpFromOnboarding(req.userId, req.body.state)
 
-    runSearchPipeline(req.userId, profile.id, "manual").catch(err => {
-      console.error("First search pipeline failed:", err)
+    runSignalDetection(req.userId, profile.id).catch(err => {
+      console.error("First signal detection failed:", err)
     })
 
     res.status(201).json({ success: true, icpProfileId: profile.id })
