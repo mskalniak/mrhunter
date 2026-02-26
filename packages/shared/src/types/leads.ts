@@ -83,3 +83,73 @@ export type UpdateIcpInput = {
   raw_prompt?: string
   competitors?: string[]
 }
+
+export type CompanyEntry = {
+  name: string
+  linkedInUrl?: string
+  source: 'user' | 'ai-suggested'
+}
+
+export type OnboardingState = {
+  companyName: string | null
+  companyLinkedInUrl: string | null
+  businessType: 'agency' | 'saas' | 'services' | 'solo' | 'other' | null
+  teamProfiles: string[]
+  targetJobTitles: string[]
+  targetIndustries: string[]
+  targetCompanySize: string | null
+  targetLocations: string[]
+  problemKeywords: string[]
+  productCategoryPhrases: string[]
+  industryHashtags: string[]
+  competitors: CompanyEntry[]
+  targetAccounts: CompanyEntry[]
+  existingCustomers: CompanyEntry[]
+  thoughtLeaders: string[]
+  hiringSignalRoles: string[]
+  targetTechStack: string[]
+  industryEvents: string[]
+  linkedInGroups: string[]
+  fiscalYearStart: number | null
+}
+
+export type IntentCategory = {
+  label: string
+  unlocked: number
+  max: number
+}
+
+export type IntentSummary = {
+  total: number
+  maxTotal: number
+  critical: number
+  high: number
+  categories: IntentCategory[]
+  hint: string | null
+}
+
+export type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export type OnboardingChatRequest = {
+  message: string
+  currentState: OnboardingState
+  chatHistory: ChatMessage[]
+}
+
+export type OnboardingChatResponse = {
+  reply: string
+  stateUpdates: Partial<OnboardingState>
+  intentSummary: IntentSummary
+}
+
+export type OnboardingCompleteRequest = {
+  state: OnboardingState
+}
+
+export type OnboardingCompleteResponse = {
+  success: boolean
+  icpProfileId: string
+}

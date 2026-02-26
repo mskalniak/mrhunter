@@ -12,6 +12,15 @@ export type {
   SearchRun,
   CreateIcpInput,
   UpdateIcpInput,
+  CompanyEntry,
+  OnboardingState,
+  IntentCategory,
+  IntentSummary,
+  ChatMessage,
+  OnboardingChatRequest,
+  OnboardingChatResponse,
+  OnboardingCompleteRequest,
+  OnboardingCompleteResponse,
 } from "./types"
 
 // API
