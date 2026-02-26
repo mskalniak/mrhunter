@@ -1,5 +1,6 @@
 import { getClaudeClient } from "../lib/claude.js"
 import { supabaseAdmin } from "../lib/supabase.js"
+import type { OnboardingState } from "@solomakers/shared"
 
 type ParsedIcpConfig = {
   titles: string[]
@@ -132,4 +133,55 @@ export async function deactivateAllProfiles(userId: string) {
     .eq("is_active", true)
 
   if (error) throw error
+}
+
+export async function createIcpFromOnboarding(userId: string, state: OnboardingState) {
+  const parsed_config: ParsedIcpConfig = {
+    titles: state.targetJobTitles,
+    industries: state.targetIndustries,
+    keywords: [
+      ...state.problemKeywords,
+      ...state.productCategoryPhrases,
+    ],
+    competitors: state.competitors.map(c => c.name),
+    company_size: state.targetCompanySize ?? undefined,
+    location: state.targetLocations.join(', ') || undefined,
+  }
+
+  const { search_queries } = await parseIcpPrompt(buildRawPromptFromState(state))
+
+  await deactivateAllProfiles(userId).catch(() => {})
+
+  const { data, error } = await supabaseAdmin
+    .from("icp_profiles")
+    .insert({
+      user_id: userId,
+      raw_prompt: buildRawPromptFromState(state),
+      parsed_config,
+      search_queries,
+      is_active: true,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+function buildRawPromptFromState(state: OnboardingState): string {
+  const parts: string[] = []
+  if (state.businessType) parts.push(`Business type: ${state.businessType}`)
+  if (state.companyName) parts.push(`Company: ${state.companyName}`)
+  if (state.targetJobTitles.length) parts.push(`Target titles: ${state.targetJobTitles.join(', ')}`)
+  if (state.targetIndustries.length) parts.push(`Industries: ${state.targetIndustries.join(', ')}`)
+  if (state.targetCompanySize) parts.push(`Company size: ${state.targetCompanySize}`)
+  if (state.targetLocations.length) parts.push(`Locations: ${state.targetLocations.join(', ')}`)
+  if (state.problemKeywords.length) parts.push(`Pain points: ${state.problemKeywords.join(', ')}`)
+  if (state.productCategoryPhrases.length) parts.push(`Product category: ${state.productCategoryPhrases.join(', ')}`)
+  if (state.competitors.length) parts.push(`Competitors: ${state.competitors.map(c => c.name).join(', ')}`)
+  if (state.targetAccounts.length) parts.push(`Target accounts: ${state.targetAccounts.map(a => a.name).join(', ')}`)
+  if (state.existingCustomers.length) parts.push(`Existing customers: ${state.existingCustomers.map(c => c.name).join(', ')}`)
+  if (state.hiringSignalRoles.length) parts.push(`Hiring signal roles: ${state.hiringSignalRoles.join(', ')}`)
+  if (state.industryHashtags.length) parts.push(`Hashtags: ${state.industryHashtags.join(', ')}`)
+  return parts.join('. ') + '.'
 }

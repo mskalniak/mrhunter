@@ -4,6 +4,7 @@ import { icpRouter } from "./routes/icp.js"
 import { leadsRouter } from "./routes/leads.js"
 import { searchRouter } from "./routes/search.js"
 import { cronRouter } from "./routes/cron.js"
+import { onboardingRouter } from "./routes/onboarding.js"
 import { errorHandler } from "./middleware/error-handler.js"
 
 export const app = express()
@@ -12,17 +13,18 @@ app.use(cors())
 app.use(express.json())
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true })
+  res.json({ ok: true, timestamp: new Date().toISOString() })
 })
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true })
+  res.json({ ok: true, timestamp: new Date().toISOString() })
 })
 
 app.use("/api/icp", icpRouter)
 app.use("/api/leads", leadsRouter)
 app.use("/api/search", searchRouter)
 app.use("/api/cron", cronRouter)
+app.use("/api/onboarding", onboardingRouter)
 
 app.use(errorHandler)
 
