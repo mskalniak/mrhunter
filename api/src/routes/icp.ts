@@ -41,6 +41,16 @@ icpRouter.post("/", validate(createSchema), async (req, res, next) => {
   }
 })
 
+// DELETE /api/icp — deactivate all ICP profiles (reset)
+icpRouter.delete("/", async (req, res, next) => {
+  try {
+    await icpService.deactivateAllProfiles(req.userId)
+    res.json({ success: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // PUT /api/icp/:id — update ICP profile
 const updateSchema = z.object({
   raw_prompt: z.string().min(10).max(2000),
