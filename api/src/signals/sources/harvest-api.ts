@@ -303,7 +303,7 @@ export async function searchProfiles(
 ): Promise<HarvestProfileSearchResult[]> {
   const input: Record<string, unknown> = {
     searchQuery: search,
-    maxItems: opts?.maxItems ?? 20,
+    maxItems: opts?.maxItems ?? 25,
   }
   if (opts?.locations) input.locations = opts.locations
   if (opts?.currentCompanies) input.currentCompanies = opts.currentCompanies
@@ -314,12 +314,12 @@ export async function searchProfiles(
 }
 
 export async function searchJobs(
-  search: string,
+  searches: string[],
   opts?: JobSearchOpts,
 ): Promise<HarvestJob[]> {
   const input: Record<string, unknown> = {
-    jobTitles: [search],
-    maxItems: opts?.maxItems ?? 10,
+    jobTitles: searches,
+    maxItems: opts?.maxItems ?? 25,
     sortBy: opts?.sortBy ?? "date",
   }
   if (opts?.locations) input.locations = opts.locations

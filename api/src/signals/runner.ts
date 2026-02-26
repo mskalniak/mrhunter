@@ -139,21 +139,37 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
     console.error("[prefetch]   new role posts: FAILED -", err instanceof Error ? err.message : err)
   }
 
-  // ── Profile searches
+  // ── Profile search (single API call with all titles)
   console.log("[prefetch] Fetching profiles...")
   const profilesByTitle = new Map<string, harvest.HarvestProfileSearchResult[]>()
-  for (const title of titles.slice(0, 3)) {
-    try {
-      const profiles = await harvest.searchProfiles(title, {
-        currentJobTitles: [title],
-        locations: location ? [location] : undefined,
-        maxItems: 5,
-      })
-      profilesByTitle.set(title, profiles.slice(0, 5))
-      console.log(`[prefetch]   "${title}": ${profiles.length} profiles`)
-    } catch (err) {
-      console.error(`[prefetch]   "${title}": FAILED -`, err instanceof Error ? err.message : err)
+  const titlesToSearch = titles.slice(0, 3)
+  try {
+    const searchQuery = titlesToSearch.join(" OR ")
+    const profiles = await harvest.searchProfiles(searchQuery, {
+      currentJobTitles: titlesToSearch,
+      locations: location ? [location] : undefined,
+      maxItems: 25,
+    })
+    // Distribute results into the map by matching title
+    for (const profile of profiles) {
+      const matchedTitle = titlesToSearch.find((t) => {
+        const titleLower = t.toLowerCase()
+        return (
+          profile.headline?.toLowerCase().includes(titleLower) ||
+          profile.position?.toLowerCase().includes(titleLower)
+        )
+      }) ?? titlesToSearch[0]
+      const existing = profilesByTitle.get(matchedTitle) ?? []
+      existing.push(profile)
+      profilesByTitle.set(matchedTitle, existing)
     }
+    for (const title of titlesToSearch) {
+      const count = profilesByTitle.get(title)?.length ?? 0
+      console.log(`[prefetch]   "${title}": ${count} profiles`)
+    }
+    console.log(`[prefetch]   total profiles: ${profiles.length}`)
+  } catch (err) {
+    console.error(`[prefetch]   profiles: FAILED -`, err instanceof Error ? err.message : err)
   }
 
   // ── Full profiles
@@ -172,30 +188,48 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
   }
   console.log(`[prefetch]   full profiles fetched: ${fullProfiles.size}`)
 
-  // ── Job searches (week)
+  // ── Job searches (week) — single API call with all titles
   console.log("[prefetch] Fetching jobs (week)...")
   const jobsByTitleWeek = new Map<string, harvest.HarvestJob[]>()
-  for (const title of titles.slice(0, 3)) {
-    try {
-      const jobs = await harvest.searchJobs(title, { postedLimit: "week", sortBy: "date", locations: location ? [location] : undefined, maxItems: 10 })
-      jobsByTitleWeek.set(title, jobs.slice(0, 10))
-      console.log(`[prefetch]   "${title}": ${jobs.length} jobs (week)`)
-    } catch (err) {
-      console.error(`[prefetch]   "${title}" jobs (week): FAILED -`, err instanceof Error ? err.message : err)
+  try {
+    const jobs = await harvest.searchJobs(titlesToSearch, { postedLimit: "week", sortBy: "date", locations: location ? [location] : undefined, maxItems: 25 })
+    // Distribute results by matching title
+    for (const job of jobs) {
+      const matchedTitle = titlesToSearch.find((t) =>
+        job.title?.toLowerCase().includes(t.toLowerCase()),
+      ) ?? titlesToSearch[0]
+      const existing = jobsByTitleWeek.get(matchedTitle) ?? []
+      existing.push(job)
+      jobsByTitleWeek.set(matchedTitle, existing)
     }
+    for (const title of titlesToSearch) {
+      console.log(`[prefetch]   "${title}": ${jobsByTitleWeek.get(title)?.length ?? 0} jobs (week)`)
+    }
+    console.log(`[prefetch]   total jobs (week): ${jobs.length}`)
+  } catch (err) {
+    console.error(`[prefetch]   jobs (week): FAILED -`, err instanceof Error ? err.message : err)
   }
 
-  // ── Job searches (month)
+  // ── Job searches (month) — single API call with all titles
   console.log("[prefetch] Fetching jobs (month)...")
   const jobsByTitleMonth = new Map<string, harvest.HarvestJob[]>()
-  for (const title of titles.slice(0, 3)) {
-    try {
-      const jobs = await harvest.searchJobs(title, { postedLimit: "month", sortBy: "date", locations: location ? [location] : undefined, maxItems: 20 })
-      jobsByTitleMonth.set(title, jobs.slice(0, 20))
-      console.log(`[prefetch]   "${title}": ${jobs.length} jobs (month)`)
-    } catch (err) {
-      console.error(`[prefetch]   "${title}" jobs (month): FAILED -`, err instanceof Error ? err.message : err)
+  try {
+    const jobs = await harvest.searchJobs(titlesToSearch, { postedLimit: "month", sortBy: "date", locations: location ? [location] : undefined, maxItems: 25 })
+    // Distribute results by matching title
+    for (const job of jobs) {
+      const matchedTitle = titlesToSearch.find((t) =>
+        job.title?.toLowerCase().includes(t.toLowerCase()),
+      ) ?? titlesToSearch[0]
+      const existing = jobsByTitleMonth.get(matchedTitle) ?? []
+      existing.push(job)
+      jobsByTitleMonth.set(matchedTitle, existing)
     }
+    for (const title of titlesToSearch) {
+      console.log(`[prefetch]   "${title}": ${jobsByTitleMonth.get(title)?.length ?? 0} jobs (month)`)
+    }
+    console.log(`[prefetch]   total jobs (month): ${jobs.length}`)
+  } catch (err) {
+    console.error(`[prefetch]   jobs (month): FAILED -`, err instanceof Error ? err.message : err)
   }
 
   const budget = getBudgetStatus()
