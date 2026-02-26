@@ -46,11 +46,14 @@ icpRouter.post("/", validate(createSchema), async (req, res, next) => {
 icpRouter.delete("/", async (req, res, next) => {
   try {
     // Delete in order: lead_signals (junction) → leads → signals → search_runs → deactivate ICP
-    await supabaseAdmin.from("lead_signals")
-      .delete()
-      .in("lead_id",
-        supabaseAdmin.from("leads").select("id").eq("user_id", req.userId)
-      )
+    const { data: userLeads } = await supabaseAdmin
+      .from("leads")
+      .select("id")
+      .eq("user_id", req.userId)
+    const leadIds = (userLeads ?? []).map((l: { id: string }) => l.id)
+    if (leadIds.length > 0) {
+      await supabaseAdmin.from("lead_signals").delete().in("lead_id", leadIds)
+    }
     await supabaseAdmin.from("leads").delete().eq("user_id", req.userId)
     await supabaseAdmin.from("signals").delete().eq("user_id", req.userId)
     await supabaseAdmin.from("search_runs").delete().eq("user_id", req.userId)
