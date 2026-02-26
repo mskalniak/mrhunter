@@ -11,56 +11,39 @@ export const companyChange: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { titles, location } = ctx.icpProfile
     const now = Date.now()
     const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000
 
-    for (const targetTitle of titles.slice(0, 5)) {
-      try {
-        const profiles = await ctx.harvest.searchProfiles(targetTitle, {
-          title: targetTitle,
-          location,
-        })
+    for (const profile of ctx.data.fullProfiles.values()) {
+      if (!profile.experience || profile.experience.length < 2) continue
 
-        for (const profileResult of profiles.slice(0, 20)) {
-          try {
-            const profile = await ctx.harvest.getProfile(profileResult.linkedinUrl)
-            if (!profile?.experience || profile.experience.length < 2) continue
+      const current = profile.experience[0]
+      const previous = profile.experience[1]
 
-            const current = profile.experience[0]
-            const previous = profile.experience[1]
+      if (!current.startDate?.year) continue
 
-            if (!current.startDate?.year) continue
+      const startMonth = current.startDate.month
+        ? parseInt(current.startDate.month, 10) || 1
+        : 1
+      const startDate = new Date(current.startDate.year, startMonth - 1, 1)
+      const daysSinceStart = now - startDate.getTime()
 
-            const startMonth = current.startDate.month
-              ? parseInt(current.startDate.month, 10) || 1
-              : 1
-            const startDate = new Date(current.startDate.year, startMonth - 1, 1)
-            const daysSinceStart = now - startDate.getTime()
+      if (daysSinceStart < 0 || daysSinceStart > ninetyDaysMs) continue
+      if (current.companyName === previous.companyName) continue
 
-            if (daysSinceStart < 0 || daysSinceStart > ninetyDaysMs) continue
-            if (current.companyName === previous.companyName) continue
-
-            signals.push({
-              detectorId: "3.2",
-              signalType: "role_change",
-              strength: "critical",
-              scorePoints: 40,
-              linkedinUrl: profile.linkedinUrl,
-              name: `${profile.firstName} ${profile.lastName}`,
-              headline: profile.headline,
-              company: current.companyName,
-              title: `Moved from ${previous.companyName} to ${current.companyName}`,
-              snippet: `${profile.firstName} ${profile.lastName} recently moved from ${previous.companyName} (${previous.position}) to ${current.companyName} (${current.position})`,
-              sourceUrl: profile.linkedinUrl,
-            })
-          } catch {
-            // Skip individual profile failures
-          }
-        }
-      } catch {
-        // Skip individual title search failures
-      }
+      signals.push({
+        detectorId: "3.2",
+        signalType: "role_change",
+        strength: "critical",
+        scorePoints: 40,
+        linkedinUrl: profile.linkedinUrl,
+        name: `${profile.firstName} ${profile.lastName}`,
+        headline: profile.headline,
+        company: current.companyName,
+        title: `Moved from ${previous.companyName} to ${current.companyName}`,
+        snippet: `${profile.firstName} ${profile.lastName} recently moved from ${previous.companyName} (${previous.position}) to ${current.companyName} (${current.position})`,
+        sourceUrl: profile.linkedinUrl,
+      })
     }
 
     return signals

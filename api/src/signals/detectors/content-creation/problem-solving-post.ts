@@ -15,21 +15,16 @@ export const problemSolvingPost: SignalDetector = {
     const { keywords } = ctx.icpProfile
     const claude = getClaudeClient()
 
-    for (const keyword of keywords.slice(0, 5)) {
+    for (const [keyword, posts] of ctx.data.keywordPosts) {
+      const batch = posts.slice(0, 15).map((p, i) => ({
+        index: i,
+        name: p.author.name,
+        content: p.content.slice(0, 300),
+      }))
+
+      if (batch.length === 0) continue
+
       try {
-        const posts = await ctx.harvest.searchPosts(keyword, {
-          postedLimit: "week",
-          sortBy: "date",
-        })
-
-        const batch = posts.slice(0, 15).map((p, i) => ({
-          index: i,
-          name: p.author.name,
-          content: p.content.slice(0, 300),
-        }))
-
-        if (batch.length === 0) continue
-
         const response = await claude.messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 256,
@@ -74,7 +69,7 @@ If none match, return [].`,
           // JSON parse failure — skip this batch
         }
       } catch {
-        // Skip individual keyword failures
+        // Claude API failure — skip
       }
     }
 

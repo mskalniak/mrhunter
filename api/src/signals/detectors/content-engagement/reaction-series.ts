@@ -19,47 +19,33 @@ export const reactionSeries: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { competitors } = ctx.icpProfile
     const engagementMap = new Map<string, EngagementTracker>()
 
-    for (const competitor of competitors) {
-      try {
-        const posts = await ctx.harvest.searchPosts(competitor, {
-          postedLimit: "week",
-          sortBy: "date",
-        })
+    for (const { posts, commentsByPostUrl } of ctx.data.competitorWeek) {
+      for (const post of posts) {
+        const comments = commentsByPostUrl.get(post.linkedinUrl) ?? []
 
-        for (const post of posts.slice(0, 10)) {
-          try {
-            const comments = await ctx.harvest.getPostComments(post.linkedinUrl)
+        for (const comment of comments) {
+          if (comment.actor.author) continue
 
-            for (const comment of comments) {
-              if (comment.actor.author) continue
+          const key = comment.actor.linkedinUrl
+          const existing = engagementMap.get(key)
 
-              const key = comment.actor.linkedinUrl
-              const existing = engagementMap.get(key)
-
-              if (existing) {
-                existing.count++
-                if (!existing.posts.includes(post.linkedinUrl)) {
-                  existing.posts.push(post.linkedinUrl)
-                }
-              } else {
-                engagementMap.set(key, {
-                  name: comment.actor.name,
-                  headline: comment.actor.position,
-                  linkedinUrl: comment.actor.linkedinUrl,
-                  count: 1,
-                  posts: [post.linkedinUrl],
-                })
-              }
+          if (existing) {
+            existing.count++
+            if (!existing.posts.includes(post.linkedinUrl)) {
+              existing.posts.push(post.linkedinUrl)
             }
-          } catch {
-            // Skip individual post failures
+          } else {
+            engagementMap.set(key, {
+              name: comment.actor.name,
+              headline: comment.actor.position,
+              linkedinUrl: comment.actor.linkedinUrl,
+              count: 1,
+              posts: [post.linkedinUrl],
+            })
           }
         }
-      } catch {
-        // Skip individual competitor failures
       }
     }
 

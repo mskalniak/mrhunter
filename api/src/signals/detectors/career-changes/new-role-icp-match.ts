@@ -15,20 +15,16 @@ export const newRoleIcpMatch: SignalDetector = {
     const { titles, industries, keywords } = ctx.icpProfile
     const claude = getClaudeClient()
 
+    const posts = ctx.data.newRolePosts
+    const batch = posts.slice(0, 20).map((p, i) => ({
+      index: i,
+      name: p.author.name,
+      content: p.content.slice(0, 300),
+    }))
+
+    if (batch.length === 0) return signals
+
     try {
-      const posts = await ctx.harvest.searchPosts(
-        '#newrole OR #newjob OR "excited to announce"',
-        { postedLimit: "week", sortBy: "date" },
-      )
-
-      const batch = posts.slice(0, 20).map((p, i) => ({
-        index: i,
-        name: p.author.name,
-        content: p.content.slice(0, 300),
-      }))
-
-      if (batch.length === 0) return signals
-
       const response = await claude.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 256,
@@ -76,7 +72,7 @@ If none match, return [].`,
         // JSON parse failure
       }
     } catch {
-      // Search or Claude API failure
+      // Claude API failure
     }
 
     return signals

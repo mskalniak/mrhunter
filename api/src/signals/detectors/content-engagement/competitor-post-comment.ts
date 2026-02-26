@@ -11,41 +11,27 @@ export const competitorPostComment: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { competitors } = ctx.icpProfile
 
-    for (const competitor of competitors) {
-      try {
-        const posts = await ctx.harvest.searchPosts(competitor, {
-          postedLimit: "week",
-          sortBy: "date",
-        })
+    for (const { competitor, posts, commentsByPostUrl } of ctx.data.competitorWeek) {
+      for (const post of posts) {
+        const comments = commentsByPostUrl.get(post.linkedinUrl) ?? []
 
-        for (const post of posts.slice(0, 10)) {
-          try {
-            const comments = await ctx.harvest.getPostComments(post.linkedinUrl)
+        for (const comment of comments) {
+          if (comment.actor.author) continue
 
-            for (const comment of comments) {
-              if (comment.actor.author) continue
-
-              signals.push({
-                detectorId: "1.1",
-                signalType: "competitor_engagement",
-                strength: "critical",
-                scorePoints: 40,
-                linkedinUrl: comment.actor.linkedinUrl,
-                name: comment.actor.name,
-                headline: comment.actor.position,
-                title: `Commented on ${competitor} post`,
-                snippet: comment.commentary.slice(0, 300),
-                sourceUrl: post.linkedinUrl,
-              })
-            }
-          } catch {
-            // Skip individual post comment failures
-          }
+          signals.push({
+            detectorId: "1.1",
+            signalType: "competitor_engagement",
+            strength: "critical",
+            scorePoints: 40,
+            linkedinUrl: comment.actor.linkedinUrl,
+            name: comment.actor.name,
+            headline: comment.actor.position,
+            title: `Commented on ${competitor} post`,
+            snippet: comment.commentary.slice(0, 300),
+            sourceUrl: post.linkedinUrl,
+          })
         }
-      } catch {
-        // Skip individual competitor failures
       }
     }
 

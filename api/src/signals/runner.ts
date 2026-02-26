@@ -1,8 +1,9 @@
 import { supabaseAdmin } from "../lib/supabase.js"
 import { allDetectors } from "./registry.js"
-import type { DetectionContext, DetectedSignal } from "./types.js"
+import type { DetectionContext, DetectedSignal, PrefetchedData, CompetitorPostData } from "./types.js"
 import type { ParsedIcpConfig } from "@solomakers/shared"
 import * as harvest from "./sources/harvest-api.js"
+import { resetBudget, getBudgetStatus } from "./sources/harvest-api.js"
 
 // ── Result type ───────────────────────────────────────────────────────
 
@@ -13,6 +14,177 @@ export type SignalRunResult = {
   leadsCreated: number
   leadsUpdated: number
   errors: Array<{ detectorId: string; error: string }>
+}
+
+// ── Prefetch all data sources ────────────────────────────────────────
+
+async function fetchCompetitorPosts(
+  competitors: string[],
+  postedLimit: "week" | "month",
+  scrapePostedLimit: "week" | "month",
+  maxPosts: number,
+  maxCommentsPerPost: number,
+): Promise<CompetitorPostData[]> {
+  const results: CompetitorPostData[] = []
+
+  for (const competitor of competitors.slice(0, 3)) {
+    try {
+      const posts = await harvest.searchPosts(competitor, {
+        postedLimit,
+        scrapePostedLimit,
+        sortBy: "date",
+      })
+
+      const slicedPosts = posts.slice(0, maxPosts)
+      const commentsByPostUrl = new Map<string, harvest.HarvestComment[]>()
+
+      for (const post of slicedPosts) {
+        try {
+          const comments = await harvest.getPostComments(post.linkedinUrl)
+          commentsByPostUrl.set(post.linkedinUrl, comments.slice(0, maxCommentsPerPost))
+        } catch {
+          // Skip individual post comment failures
+        }
+      }
+
+      results.push({ competitor, posts: slicedPosts, commentsByPostUrl })
+    } catch {
+      // Skip individual competitor failures
+    }
+  }
+
+  return results
+}
+
+async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
+  const { competitors, keywords, titles, location } = icp
+
+  // ── Competitor posts (week) + comments — 3 comp × (1 search + 3 comment) = 12 calls
+  console.log("[prefetch] Fetching competitor posts (week)...")
+  const competitorWeek = await fetchCompetitorPosts(competitors, "week", "week", 3, 20)
+
+  // ── Competitor posts (month) + comments — 3 comp × (1 search + 3 comment) = 12 calls
+  console.log("[prefetch] Fetching competitor posts (month)...")
+  const competitorMonth = await fetchCompetitorPosts(competitors, "month", "month", 3, 20)
+
+  // ── Keyword posts — 3 keyword searches = 3 calls
+  console.log("[prefetch] Fetching keyword posts...")
+  const keywordPosts = new Map<string, harvest.HarvestPost[]>()
+  for (const keyword of keywords.slice(0, 3)) {
+    try {
+      const posts = await harvest.searchPosts(keyword, { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" })
+      keywordPosts.set(keyword, posts.slice(0, 15))
+    } catch {
+      // Skip
+    }
+  }
+
+  // ── Recommendation posts — 1 combined search = 1 call
+  console.log("[prefetch] Fetching recommendation posts...")
+  let recommendationPosts: harvest.HarvestPost[] = []
+  try {
+    const posts = await harvest.searchPosts(
+      "who can recommend OR looking for recommendations OR any suggestions for",
+      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" },
+    )
+    recommendationPosts = posts.slice(0, 15)
+  } catch {
+    // Skip
+  }
+
+  // ── Demo/trial posts — 1 combined search = 1 call
+  console.log("[prefetch] Fetching demo/trial posts...")
+  let demoTrialPosts: harvest.HarvestPost[] = []
+  try {
+    const posts = await harvest.searchPosts(
+      "looking for demo OR free trial OR want to try",
+      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date" },
+    )
+    demoTrialPosts = posts.slice(0, 15)
+  } catch {
+    // Skip
+  }
+
+  // ── New role posts — 1 call
+  console.log("[prefetch] Fetching new role posts...")
+  let newRolePosts: harvest.HarvestPost[] = []
+  try {
+    const posts = await harvest.searchPosts('#newrole OR #newjob OR "excited to announce"', {
+      postedLimit: "week",
+      scrapePostedLimit: "week",
+      sortBy: "date",
+    })
+    newRolePosts = posts.slice(0, 20)
+  } catch {
+    // Skip
+  }
+
+  // ── Profile searches — 3 title searches = 3 calls
+  console.log("[prefetch] Fetching profiles...")
+  const profilesByTitle = new Map<string, harvest.HarvestProfileSearchResult[]>()
+  for (const title of titles.slice(0, 3)) {
+    try {
+      const profiles = await harvest.searchProfiles(title, { title, location })
+      profilesByTitle.set(title, profiles.slice(0, 5))
+    } catch {
+      // Skip
+    }
+  }
+
+  // ── Full profiles — up to 15 getProfile calls (3 titles × 5 profiles)
+  console.log("[prefetch] Fetching full profiles...")
+  const fullProfiles = new Map<string, harvest.HarvestProfile>()
+  for (const [, results] of profilesByTitle) {
+    for (const result of results) {
+      if (fullProfiles.has(result.linkedinUrl)) continue
+      try {
+        const profile = await harvest.getProfile(result.linkedinUrl)
+        if (profile) fullProfiles.set(result.linkedinUrl, profile)
+      } catch {
+        // Skip
+      }
+    }
+  }
+
+  // ── Job searches (week) — 3 title searches = 3 calls
+  console.log("[prefetch] Fetching jobs (week)...")
+  const jobsByTitleWeek = new Map<string, harvest.HarvestJob[]>()
+  for (const title of titles.slice(0, 3)) {
+    try {
+      const jobs = await harvest.searchJobs(title, { postedLimit: "week", sortBy: "date", location })
+      jobsByTitleWeek.set(title, jobs.slice(0, 10))
+    } catch {
+      // Skip
+    }
+  }
+
+  // ── Job searches (month) — 3 title searches = 3 calls
+  console.log("[prefetch] Fetching jobs (month)...")
+  const jobsByTitleMonth = new Map<string, harvest.HarvestJob[]>()
+  for (const title of titles.slice(0, 3)) {
+    try {
+      const jobs = await harvest.searchJobs(title, { postedLimit: "month", sortBy: "date", location })
+      jobsByTitleMonth.set(title, jobs.slice(0, 20))
+    } catch {
+      // Skip
+    }
+  }
+
+  const budget = getBudgetStatus()
+  console.log(`[prefetch] Done. API calls used: ${budget.used}/${budget.budget}`)
+
+  return {
+    competitorWeek,
+    competitorMonth,
+    keywordPosts,
+    recommendationPosts,
+    demoTrialPosts,
+    newRolePosts,
+    profilesByTitle,
+    fullProfiles,
+    jobsByTitleWeek,
+    jobsByTitleMonth,
+  }
 }
 
 // ── Main orchestration ────────────────────────────────────────────────
@@ -46,21 +218,22 @@ export async function runSignalDetection(
   if (runError || !searchRun) throw runError ?? new Error("Failed to create search run")
 
   try {
-    // 3. Build detection context
+    // 3. Reset API budget
+    resetBudget(100)
+    console.log(`[signals] API budget: 100 requests`)
+
+    // 4. Prefetch all data sources
     const parsedConfig: ParsedIcpConfig = icp.parsed_config
+    const data = await prefetchData(parsedConfig)
+
+    // 5. Build detection context (no harvest API — detectors use prefetched data)
     const ctx: DetectionContext = {
       icpProfile: parsedConfig,
       userId,
-      harvest: {
-        searchPosts: harvest.searchPosts,
-        getPostComments: harvest.getPostComments,
-        getProfile: harvest.getProfile,
-        searchProfiles: harvest.searchProfiles,
-        searchJobs: harvest.searchJobs,
-      },
+      data,
     }
 
-    // 4. Run each detector sequentially (for rate limits)
+    // 6. Run each detector sequentially
     const allSignals: DetectedSignal[] = []
     const errors: Array<{ detectorId: string; error: string }> = []
 
@@ -77,7 +250,7 @@ export async function runSignalDetection(
       }
     }
 
-    // 5. Deduplicate by linkedinUrl::detectorId (keep first)
+    // 7. Deduplicate by linkedinUrl::detectorId (keep first)
     const seen = new Set<string>()
     const uniqueSignals: DetectedSignal[] = []
     for (const signal of allSignals) {
@@ -87,9 +260,10 @@ export async function runSignalDetection(
         uniqueSignals.push(signal)
       }
     }
-    console.log(`[signals] Total: ${allSignals.length}, Unique: ${uniqueSignals.length}`)
+    const budget = getBudgetStatus()
+    console.log(`[signals] Total: ${allSignals.length}, Unique: ${uniqueSignals.length}, API calls used: ${budget.used}/${budget.budget}`)
 
-    // 6. Store signals in signals table
+    // 8. Store signals in signals table
     const signalInserts = uniqueSignals.map((signal) => ({
       user_id: userId,
       icp_profile_id: icpProfileId,
@@ -120,7 +294,7 @@ export async function runSignalDetection(
       insertedSignals = signals ?? []
     }
 
-    // 7. Group signals by person and score with diminishing returns
+    // 9. Group signals by person and score with diminishing returns
     const signalsByPerson = new Map<
       string,
       Array<{ signal: DetectedSignal; insertedId: string }>
@@ -139,7 +313,7 @@ export async function runSignalDetection(
     let leadsCreated = 0
     let leadsUpdated = 0
 
-    // 8. Upsert leads
+    // 10. Upsert leads
     for (const [linkedinUrl, personSignals] of signalsByPerson) {
       // Sort by scorePoints descending for diminishing returns
       personSignals.sort((a, b) => b.signal.scorePoints - a.signal.scorePoints)
@@ -216,7 +390,7 @@ export async function runSignalDetection(
         leadsCreated++
       }
 
-      // 9. Link signals to leads
+      // 11. Link signals to leads
       const signalLinks = personSignals.map((ps) => ({
         lead_id: leadId,
         signal_id: ps.insertedId,
@@ -229,7 +403,7 @@ export async function runSignalDetection(
       }
     }
 
-    // 10. Update search_run as completed
+    // 12. Update search_run as completed
     await supabaseAdmin
       .from("search_runs")
       .update({

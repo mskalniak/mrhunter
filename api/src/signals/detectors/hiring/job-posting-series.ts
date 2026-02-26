@@ -18,38 +18,28 @@ export const jobPostingSeries: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { titles } = ctx.icpProfile
     const companyMap = new Map<string, CompanyJobTracker>()
 
-    for (const targetTitle of titles.slice(0, 5)) {
-      try {
-        const jobs = await ctx.harvest.searchJobs(targetTitle, {
-          postedLimit: "month",
-          sortBy: "date",
-        })
+    for (const [, jobs] of ctx.data.jobsByTitleMonth) {
+      for (const job of jobs) {
+        const companyName = job.company?.name
+        if (!companyName) continue
 
-        for (const job of jobs) {
-          const companyName = job.company?.name
-          if (!companyName) continue
+        const key = companyName.toLowerCase()
+        const existing = companyMap.get(key)
 
-          const key = companyName.toLowerCase()
-          const existing = companyMap.get(key)
-
-          if (existing) {
-            if (!existing.jobTitles.includes(job.title)) {
-              existing.jobTitles.push(job.title)
-            }
-          } else {
-            companyMap.set(key, {
-              companyName,
-              companyUrl: job.company?.linkedinUrl ?? job.linkedinUrl,
-              jobTitles: [job.title],
-              sourceUrl: job.linkedinUrl,
-            })
+        if (existing) {
+          if (!existing.jobTitles.includes(job.title)) {
+            existing.jobTitles.push(job.title)
           }
+        } else {
+          companyMap.set(key, {
+            companyName,
+            companyUrl: job.company?.linkedinUrl ?? job.linkedinUrl,
+            jobTitles: [job.title],
+            sourceUrl: job.linkedinUrl,
+          })
         }
-      } catch {
-        // Skip individual title search failures
       }
     }
 

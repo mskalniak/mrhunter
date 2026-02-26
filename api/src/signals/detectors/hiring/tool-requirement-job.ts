@@ -12,7 +12,7 @@ export const toolRequirementJob: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { titles, keywords } = ctx.icpProfile
+    const { keywords } = ctx.icpProfile
     const claude = getClaudeClient()
 
     const allJobs: Array<{
@@ -24,28 +24,19 @@ export const toolRequirementJob: SignalDetector = {
       jobUrl: string
     }> = []
 
-    for (const targetTitle of titles.slice(0, 3)) {
-      try {
-        const jobs = await ctx.harvest.searchJobs(targetTitle, {
-          postedLimit: "Past Week",
-          sortBy: "date",
+    for (const [, jobs] of ctx.data.jobsByTitleWeek) {
+      for (const job of jobs) {
+        if (!job.descriptionText || job.descriptionText.length <= 50) continue
+        if (allJobs.length >= 10) break
+
+        allJobs.push({
+          index: allJobs.length,
+          title: job.title,
+          company: job.company?.name ?? "Unknown",
+          companyUrl: job.company?.linkedinUrl ?? job.linkedinUrl,
+          description: job.descriptionText.slice(0, 500),
+          jobUrl: job.linkedinUrl,
         })
-
-        for (const job of jobs) {
-          if (!job.descriptionText || job.descriptionText.length <= 50) continue
-          if (allJobs.length >= 10) break
-
-          allJobs.push({
-            index: allJobs.length,
-            title: job.title,
-            company: job.company?.name ?? "Unknown",
-            companyUrl: job.company?.linkedinUrl ?? job.linkedinUrl,
-            description: job.descriptionText.slice(0, 500),
-            jobUrl: job.linkedinUrl,
-          })
-        }
-      } catch {
-        // Skip individual title search failures
       }
 
       if (allJobs.length >= 10) break

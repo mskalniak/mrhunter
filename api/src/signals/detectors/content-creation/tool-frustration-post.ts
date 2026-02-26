@@ -12,24 +12,18 @@ export const toolFrustrationPost: SignalDetector = {
 
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
-    const { competitors } = ctx.icpProfile
     const claude = getClaudeClient()
 
-    for (const competitor of competitors) {
+    for (const { competitor, posts } of ctx.data.competitorMonth) {
+      const batch = posts.slice(0, 15).map((p, i) => ({
+        index: i,
+        name: p.author.name,
+        content: p.content.slice(0, 300),
+      }))
+
+      if (batch.length === 0) continue
+
       try {
-        const posts = await ctx.harvest.searchPosts(competitor, {
-          postedLimit: "month",
-          sortBy: "date",
-        })
-
-        const batch = posts.slice(0, 15).map((p, i) => ({
-          index: i,
-          name: p.author.name,
-          content: p.content.slice(0, 300),
-        }))
-
-        if (batch.length === 0) continue
-
         const response = await claude.messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 256,
@@ -74,7 +68,7 @@ If none match, return [].`,
           // JSON parse failure — skip this batch
         }
       } catch {
-        // Skip individual competitor failures
+        // Claude API failure — skip
       }
     }
 

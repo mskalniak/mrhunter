@@ -134,19 +134,19 @@ export type PostSearchOpts = {
   mentioningCompany?: string
   contentType?: string
   postedLimit?: "24h" | "week" | "month"
+  scrapePostedLimit?: "1h" | "24h" | "week" | "month" | "3months" | "6months" | "year"
   sortBy?: "relevance" | "date"
   page?: number
 }
 
 export type JobSearchOpts = {
-  locations?: string[]
-  companies?: string[]
+  location?: string
+  companyId?: string
   sortBy?: "relevance" | "date"
   workplaceType?: string
   employmentType?: string
   experienceLevel?: string
   postedLimit?: string
-  maxItems?: number
   page?: number
 }
 
@@ -159,12 +159,33 @@ export type ProfileSearchOpts = {
   page?: number
 }
 
-// ── Internal helpers ───────────────────────────────────────────────────
+// ── Budget & rate limiting ────────────────────────────────────────────
 
 const BASE_URL = "https://api.harvest-api.com"
 const RATE_LIMIT_MS = 500
+const DEFAULT_MAX_REQUESTS = 100
 
 let lastRequestTime = 0
+let requestCount = 0
+let requestBudget = DEFAULT_MAX_REQUESTS
+const responseCache = new Map<string, unknown>()
+
+/** Reset the request counter, cache, and set a budget for this run. */
+export function resetBudget(maxRequests: number = DEFAULT_MAX_REQUESTS): void {
+  requestCount = 0
+  requestBudget = maxRequests
+  responseCache.clear()
+}
+
+/** How many requests have been used / remain in the current budget. */
+export function getBudgetStatus(): { used: number; remaining: number; budget: number } {
+  return { used: requestCount, remaining: requestBudget - requestCount, budget: requestBudget }
+}
+
+/** Returns true if budget is exhausted. Detectors should check this. */
+export function isBudgetExhausted(): boolean {
+  return requestCount >= requestBudget
+}
 
 async function rateLimitDelay(): Promise<void> {
   const now = Date.now()
@@ -183,13 +204,42 @@ type HarvestResponse<T> = {
   error?: string
 }
 
+function cacheKey(
+  endpoint: string,
+  params: Record<string, string | number | string[] | undefined>,
+): string {
+  const sorted = Object.entries(params)
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join(",") : v}`)
+    .join("&")
+  return `${endpoint}?${sorted}`
+}
+
 async function harvestFetch<T>(
   endpoint: string,
   params: Record<string, string | number | string[] | undefined>,
 ): Promise<HarvestResponse<T>> {
+  const key = cacheKey(endpoint, params)
+  const cached = responseCache.get(key)
+  if (cached) {
+    console.log(`[harvest] Cache hit: ${endpoint}`)
+    return cached as HarvestResponse<T>
+  }
+
   const { HARVEST_API_KEY } = getRequiredHarvestEnv()
 
+  if (isBudgetExhausted()) {
+    throw new Error(`HarvestAPI budget exhausted (${requestBudget} requests). Skipping ${endpoint}`)
+  }
+
   await rateLimitDelay()
+  requestCount++
+
+  const { used, remaining } = getBudgetStatus()
+  if (remaining <= 10) {
+    console.warn(`[harvest] Budget warning: ${used}/${requestBudget} requests used, ${remaining} remaining`)
+  }
 
   const url = new URL(endpoint, BASE_URL)
   for (const [key, value] of Object.entries(params)) {
@@ -216,7 +266,9 @@ async function harvestFetch<T>(
     throw new Error(`HarvestAPI ${endpoint} failed (${response.status}): ${text}`)
   }
 
-  return response.json() as Promise<HarvestResponse<T>>
+  const data = await (response.json() as Promise<HarvestResponse<T>>)
+  responseCache.set(key, data)
+  return data
 }
 
 // ── Public API ─────────────────────────────────────────────────────────

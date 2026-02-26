@@ -15,45 +15,13 @@ export const networkRecommendationPost: SignalDetector = {
     const { keywords } = ctx.icpProfile
     const claude = getClaudeClient()
 
-    const queries = [
-      "who can recommend",
-      "looking for recommendations",
-      "any suggestions for",
-      "can anyone recommend",
-      ...keywords.slice(0, 3).map((kw) => `recommend ${kw}`),
-    ]
-
-    const allPosts: Array<{
-      index: number
-      name: string
-      content: string
-      authorUrl: string
-      postUrl: string
-    }> = []
-
-    for (const query of queries) {
-      try {
-        const posts = await ctx.harvest.searchPosts(query, {
-          postedLimit: "week",
-          sortBy: "date",
-        })
-
-        for (const post of posts.slice(0, 15)) {
-          if (allPosts.length >= 15) break
-          allPosts.push({
-            index: allPosts.length,
-            name: post.author.name,
-            content: post.content.slice(0, 300),
-            authorUrl: post.author.linkedinUrl,
-            postUrl: post.linkedinUrl,
-          })
-        }
-      } catch {
-        // Skip individual query failures
-      }
-
-      if (allPosts.length >= 15) break
-    }
+    const allPosts = ctx.data.recommendationPosts.map((p, i) => ({
+      index: i,
+      name: p.author.name,
+      content: p.content.slice(0, 300),
+      authorUrl: p.author.linkedinUrl,
+      postUrl: p.linkedinUrl,
+    }))
 
     if (allPosts.length === 0) return signals
 
