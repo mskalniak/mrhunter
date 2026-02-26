@@ -1,84 +1,126 @@
-import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2, Search } from "lucide-react"
 import { toast } from "sonner"
-import { useCreateIcp } from "../hooks/use-create-icp"
+import { Loader2, Rocket } from "lucide-react"
+import { useOnboardingChat } from "../hooks/use-onboarding-chat"
+import { OnboardingChat } from "./onboarding-chat"
+import { IntentDashboard } from "./intent-dashboard"
 
 export function Onboarding() {
-  const [prompt, setPrompt] = useState("")
-  const createIcp = useCreateIcp()
   const navigate = useNavigate()
+  const {
+    chatHistory,
+    intentSummary,
+    sendMessage,
+    completeOnboarding,
+    isSending,
+    isCompleting,
+    isComplete,
+    hasRequiredFields,
+    sendError,
+  } = useOnboardingChat()
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (prompt.trim().length < 10) {
-      toast.error("Please describe your ideal customer in more detail")
-      return
-    }
+  function handleComplete() {
+    completeOnboarding()
+    toast.success("ICP created! Finding your first leads...")
+    navigate("/")
+  }
 
-    createIcp.mutate(prompt.trim(), {
-      onSuccess: () => {
-        toast.success("ICP created! Finding your first leads...")
-        navigate("/")
-      },
-      onError: (error) => {
-        toast.error(error.message || "Failed to create ICP profile")
-      },
-    })
+  if (isComplete) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={32} className="mx-auto mb-4 animate-spin text-purple-500" />
+          <p className="text-gray-500">Setting up your lead intelligence...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const progress = Math.round((intentSummary.total / intentSummary.maxTotal) * 100)
+
+  let buttonLabel = "Fill required fields to continue..."
+  let buttonEnabled = false
+  if (hasRequiredFields && progress < 50) {
+    buttonLabel = `Start with ${intentSummary.total}/${intentSummary.maxTotal} intents`
+    buttonEnabled = true
+  } else if (hasRequiredFields && progress >= 50 && progress < 80) {
+    buttonLabel = `Start hunting (${intentSummary.total}/${intentSummary.maxTotal} intents)`
+    buttonEnabled = true
+  } else if (hasRequiredFields && progress >= 80) {
+    buttonLabel = `Start — great setup! (${intentSummary.total}/${intentSummary.maxTotal})`
+    buttonEnabled = true
   }
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <div className="w-full max-w-lg">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Welcome to Cauliflower
-          </h1>
-          <p className="mt-2 text-base text-white/60">
-            Describe your ideal customer and we'll start finding high-intent leads on LinkedIn.
-          </p>
+    <div className="flex h-[calc(100vh-8rem)] flex-col">
+      {/* Mobile intent summary */}
+      <div className="flex items-center gap-3 border-b border-gray-100 bg-white/60 px-4 py-2 backdrop-blur-sm lg:hidden">
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+          <div
+            className="h-full rounded-full bg-purple-500 transition-all duration-700 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className="whitespace-nowrap text-xs font-medium tabular-nums text-gray-600">
+          {intentSummary.total}/{intentSummary.maxTotal} intents
+        </span>
+        {intentSummary.critical > 0 && (
+          <span className="flex items-center gap-1 text-xs text-red-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500" />
+            {intentSummary.critical}
+          </span>
+        )}
+      </div>
+
+      {/* Main content: chat + dashboard */}
+      <div className="flex min-h-0 flex-1">
+        {/* Left: Chat */}
+        <div className="flex flex-1 flex-col border-r border-gray-100">
+          <OnboardingChat
+            chatHistory={chatHistory}
+            onSendMessage={sendMessage}
+            isSending={isSending}
+            error={sendError}
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="icp-prompt"
-              className="mb-2 block text-sm font-medium text-white/80"
-            >
-              Who is your ideal customer?
-            </label>
-            <textarea
-              id="icp-prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g. CTOs and VPs of Engineering at B2B SaaS startups with 10-200 employees who need better developer tooling. Competitors include LinearB and Sleuth."
-              rows={5}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 backdrop-blur-sm focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/20"
-              disabled={createIcp.isPending}
-            />
-            <p className="mt-1 text-xs text-white/40">
-              Include job titles, industries, company size, pain points, and competitor names for best results.
-            </p>
-          </div>
+        {/* Right: Intent Dashboard */}
+        <div className="hidden w-80 flex-shrink-0 border-l border-gray-100 bg-white/40 backdrop-blur-sm lg:block xl:w-96">
+          <IntentDashboard summary={intentSummary} />
+        </div>
+      </div>
 
-          <button
-            type="submit"
-            disabled={createIcp.isPending || prompt.trim().length < 10}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {createIcp.isPending ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                Analyzing your ICP...
-              </>
-            ) : (
-              <>
-                <Search size={16} />
-                Start Hunting
-              </>
-            )}
-          </button>
-        </form>
+      {/* Bottom bar */}
+      <div className="flex items-center justify-between border-t border-gray-100 bg-white/80 px-6 py-3 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-purple-500 transition-all duration-700 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-xs tabular-nums text-gray-400">
+            {intentSummary.total}/{intentSummary.maxTotal} intents
+          </span>
+        </div>
+
+        <button
+          onClick={handleComplete}
+          disabled={!buttonEnabled || isCompleting}
+          className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isCompleting ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Rocket size={16} />
+              {buttonLabel}
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

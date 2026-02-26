@@ -7,6 +7,7 @@ export { useLead } from "./hooks/use-lead"
 export { useUpdateLead } from "./hooks/use-update-lead"
 export { useSearchRun } from "./hooks/use-search-run"
 export { useSearchHistory } from "./hooks/use-search-history"
+export { useOnboardingChat } from "./hooks/use-onboarding-chat"
 
 // Components
 export { Onboarding } from "./components/onboarding"
