@@ -1,5 +1,41 @@
-import { ExternalLink, Bookmark, X } from "lucide-react"
+import { ExternalLink, Bookmark, X, FileText } from "lucide-react"
 import type { Lead, SignalType } from "../types"
+
+const AVATAR_COLORS = [
+  "bg-purple-500",
+  "bg-blue-500",
+  "bg-emerald-500",
+  "bg-orange-500",
+  "bg-pink-500",
+  "bg-teal-500",
+  "bg-indigo-500",
+  "bg-rose-500",
+]
+
+function getAvatarColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 0 || !parts[0]) return "?"
+  if (parts.length === 1) return parts[0][0].toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function Avatar({ name }: { name: string }) {
+  const initials = getInitials(name)
+  const color = getAvatarColor(name)
+  return (
+    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${color} text-xs font-bold text-white`}>
+      {initials}
+    </div>
+  )
+}
 
 const SIGNAL_LABELS: Record<SignalType, string> = {
   hiring: "Hiring",
@@ -11,24 +47,24 @@ const SIGNAL_LABELS: Record<SignalType, string> = {
 }
 
 const SIGNAL_COLORS: Record<SignalType, string> = {
-  hiring: "bg-blue-500/20 text-blue-300",
-  pain_point: "bg-orange-500/20 text-orange-300",
-  competitor_engagement: "bg-purple-500/20 text-purple-300",
-  funding: "bg-green-500/20 text-green-300",
-  role_change: "bg-yellow-500/20 text-yellow-300",
-  event: "bg-pink-500/20 text-pink-300",
+  hiring: "bg-blue-100 text-blue-700",
+  pain_point: "bg-orange-100 text-orange-700",
+  competitor_engagement: "bg-purple-100 text-purple-700",
+  funding: "bg-green-100 text-green-700",
+  role_change: "bg-yellow-100 text-yellow-700",
+  event: "bg-pink-100 text-pink-700",
 }
 
 function ScoreBadge({ score }: { score: number }) {
   const color =
     score >= 80
-      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : score >= 50
-        ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-        : "bg-white/10 text-white/50 border-white/10"
+        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+        : "bg-gray-100 text-gray-500 border-gray-200"
 
   return (
-    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-bold ${color}`}>
+    <span className={`inline-flex items-center justify-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${color}`}>
       {score}
     </span>
   )
@@ -44,26 +80,27 @@ type LeadCardProps = {
 export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
   return (
     <div
-      className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 p-4 backdrop-blur-sm transition-colors hover:bg-white/[0.07] cursor-pointer"
+      className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white/60 p-4 backdrop-blur-sm transition-colors hover:bg-white/80 cursor-pointer"
       onClick={() => onClick(lead.id)}
     >
-      <ScoreBadge score={lead.intent_score} />
+      <Avatar name={lead.name || "?"} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h3 className="truncate text-sm font-semibold text-white">
+          <h3 className="truncate text-sm font-semibold text-gray-900">
             {lead.name || "Unknown"}
           </h3>
+          <ScoreBadge score={lead.intent_score} />
           {lead.status === "new" && (
-            <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-medium text-blue-300">
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
               NEW
             </span>
           )}
         </div>
-        <p className="truncate text-xs text-white/50">
+        <p className="truncate text-xs text-gray-500">
           {lead.headline || "No headline"}{lead.company ? ` at ${lead.company}` : ""}
         </p>
-        <p className="mt-1 line-clamp-2 text-xs text-white/40">
+        <p className="mt-1 line-clamp-2 text-xs text-gray-400">
           {lead.intent_summary}
         </p>
 
@@ -71,12 +108,35 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
           {lead.signal_types.map((type) => (
             <span
               key={type}
-              className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${SIGNAL_COLORS[type] ?? "bg-white/10 text-white/50"}`}
+              className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${SIGNAL_COLORS[type] ?? "bg-gray-100 text-gray-500"}`}
             >
               {SIGNAL_LABELS[type] ?? type}
             </span>
           ))}
         </div>
+
+        {lead.signals && lead.signals.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {lead.signals.map((signal) => (
+              <a
+                key={signal.id}
+                href={signal.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-[11px] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FileText size={12} className="mt-0.5 shrink-0 text-gray-400" />
+                <span className="min-w-0 flex-1">
+                  <span className={`mr-1.5 inline-block rounded px-1 py-0.5 text-[9px] font-semibold uppercase ${SIGNAL_COLORS[signal.signal_type as SignalType] ?? "bg-gray-100 text-gray-500"}`}>
+                    {SIGNAL_LABELS[signal.signal_type as SignalType] ?? signal.signal_type}
+                  </span>
+                  <span className="line-clamp-1">{signal.title || signal.snippet}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -84,7 +144,7 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
           href={lead.linkedin_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80"
+          className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
           title="View on LinkedIn"
           onClick={(e) => e.stopPropagation()}
         >
@@ -92,7 +152,7 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
         </a>
         {lead.status !== "saved" && (
           <button
-            className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-emerald-400"
+            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-emerald-600"
             title="Save lead"
             onClick={(e) => { e.stopPropagation(); onSave(lead.id) }}
           >
@@ -101,7 +161,7 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
         )}
         {lead.status !== "dismissed" && (
           <button
-            className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-red-400"
+            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-500"
             title="Dismiss lead"
             onClick={(e) => { e.stopPropagation(); onDismiss(lead.id) }}
           >

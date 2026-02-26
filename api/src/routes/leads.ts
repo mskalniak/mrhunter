@@ -19,7 +19,7 @@ leadsRouter.get("/", async (req, res, next) => {
 
     let query = supabaseAdmin
       .from("leads")
-      .select("*", { count: "exact" })
+      .select("*, lead_signals(signal_id, signals(id, source_url, signal_type, title, snippet, created_at))", { count: "exact" })
       .eq("user_id", req.userId)
       .gte("intent_score", minScore)
       .order("intent_score", { ascending: false })
@@ -37,8 +37,17 @@ leadsRouter.get("/", async (req, res, next) => {
 
     if (error) throw error
 
+    // Flatten nested join: lead_signals → signals into a flat signals array
+    const flatLeads = (leads ?? []).map((lead: any) => {
+      const { lead_signals, ...rest } = lead
+      const signals = (lead_signals ?? [])
+        .map((ls: any) => ls.signals)
+        .filter(Boolean)
+      return { ...rest, signals }
+    })
+
     res.json({
-      leads: leads ?? [],
+      leads: flatLeads,
       total: count ?? 0,
       page,
       per_page: perPage,

@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/auth.js"
 import { validate } from "../middleware/validate.js"
 import * as icpService from "../services/icp.service.js"
 import { runSearchPipeline } from "../services/search-pipeline.service.js"
+import { supabaseAdmin } from "../lib/supabase.js"
 
 export const icpRouter = Router()
 icpRouter.use(requireAuth)
@@ -41,10 +42,20 @@ icpRouter.post("/", validate(createSchema), async (req, res, next) => {
   }
 })
 
-// DELETE /api/icp — deactivate all ICP profiles (reset)
+// DELETE /api/icp — full reset: deactivate ICP + delete all leads, signals, search runs
 icpRouter.delete("/", async (req, res, next) => {
   try {
+    // Delete in order: lead_signals (junction) → leads → signals → search_runs → deactivate ICP
+    await supabaseAdmin.from("lead_signals")
+      .delete()
+      .in("lead_id",
+        supabaseAdmin.from("leads").select("id").eq("user_id", req.userId)
+      )
+    await supabaseAdmin.from("leads").delete().eq("user_id", req.userId)
+    await supabaseAdmin.from("signals").delete().eq("user_id", req.userId)
+    await supabaseAdmin.from("search_runs").delete().eq("user_id", req.userId)
     await icpService.deactivateAllProfiles(req.userId)
+
     res.json({ success: true })
   } catch (err) {
     next(err)

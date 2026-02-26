@@ -86,7 +86,7 @@ export function Settings() {
       <div className="rounded-xl border border-red-100 bg-white/60 p-6 backdrop-blur-sm">
         <h2 className="mb-2 text-sm font-semibold text-gray-900">Reset ICP</h2>
         <p className="mb-4 text-sm text-gray-500">
-          Start fresh with a new onboarding. Your current ICP and lead data will remain in the database but won't be active.
+          Start fresh with a new onboarding. This will delete all your current leads, signals, and search history.
         </p>
         <button
           onClick={() => {

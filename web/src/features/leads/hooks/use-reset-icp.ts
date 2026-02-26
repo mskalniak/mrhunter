@@ -12,6 +12,7 @@ export function useResetIcp() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["icp"] })
       queryClient.invalidateQueries({ queryKey: ["leads"] })
+      queryClient.invalidateQueries({ queryKey: ["search-history"] })
     },
   })
 }
