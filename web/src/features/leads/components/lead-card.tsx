@@ -116,24 +116,40 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
         </div>
 
         {lead.signals && lead.signals.length > 0 && (
-          <div className="mt-2 space-y-1">
+          <div className="mt-3 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Signals ({lead.signals.length})
+            </p>
             {lead.signals.map((signal) => (
-              <a
+              <div
                 key={signal.id}
-                href={signal.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-[11px] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-[11px]"
                 onClick={(e) => e.stopPropagation()}
               >
-                <FileText size={12} className="mt-0.5 shrink-0 text-gray-400" />
-                <span className="min-w-0 flex-1">
-                  <span className={`mr-1.5 inline-block rounded px-1 py-0.5 text-[9px] font-semibold uppercase ${SIGNAL_COLORS[signal.signal_type as SignalType] ?? "bg-gray-100 text-gray-500"}`}>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase ${SIGNAL_COLORS[signal.signal_type as SignalType] ?? "bg-gray-100 text-gray-500"}`}>
                     {SIGNAL_LABELS[signal.signal_type as SignalType] ?? signal.signal_type}
                   </span>
-                  <span className="line-clamp-1">{signal.title || signal.snippet}</span>
-                </span>
-              </a>
+                  <span className="text-[10px] text-gray-300">
+                    {new Date(signal.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {signal.title && (
+                  <p className="font-medium text-gray-700">{signal.title}</p>
+                )}
+                {signal.snippet && (
+                  <p className="mt-0.5 text-gray-500">{signal.snippet}</p>
+                )}
+                <a
+                  href={signal.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 text-[10px] text-purple-500 hover:text-purple-700"
+                >
+                  <FileText size={10} />
+                  {signal.source_url}
+                </a>
+              </div>
             ))}
           </div>
         )}
