@@ -12,6 +12,7 @@ export { useOnboardingChat } from "./hooks/use-onboarding-chat"
 
 // Components
 export { Onboarding } from "./components/onboarding"
+export { OnboardingForm } from "./components/onboarding-form"
 export { LeadsDashboard } from "./components/dashboard"
 export { Settings } from "./components/settings"
 export { SearchHistory } from "./components/search-history"

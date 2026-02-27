@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom"
 import { AppLayout } from "@/layouts/app-layout"
 import { LoginPage, AuthGuard } from "@/features/auth"
 import { useAuth } from "@/features/auth"
-import { useIcp, Onboarding, LeadsDashboard, Settings, SearchHistory } from "@/features/leads"
+import { useIcp, Onboarding, OnboardingForm, LeadsDashboard, Settings, SearchHistory } from "@/features/leads"
 
 function LoginRoute() {
   const { user, isLoading } = useAuth()
@@ -48,6 +48,7 @@ export function AppRoutes() {
       <Route element={<AuthGuard />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardOrOnboarding />} />
+          <Route path="/onboarding/form" element={<OnboardingForm />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/search-history" element={<SearchHistory />} />
         </Route>

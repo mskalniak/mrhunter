@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { toast } from "sonner"
-import { Loader2, Rocket } from "lucide-react"
+import { Loader2, Rocket, FileText } from "lucide-react"
 import { useOnboardingChat } from "../hooks/use-onboarding-chat"
 import { OnboardingChat } from "./onboarding-chat"
 import { IntentDashboard } from "./intent-dashboard"
@@ -92,16 +92,25 @@ export function Onboarding() {
 
       {/* Bottom bar */}
       <div className="flex items-center justify-between border-t border-gray-100 bg-white/80 px-6 py-3 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
-            <div
-              className="h-full rounded-full bg-purple-500 transition-all duration-700 ease-out"
-              style={{ width: `${progress}%` }}
-            />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full bg-purple-500 transition-all duration-700 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-xs tabular-nums text-gray-400">
+              {intentSummary.total}/{intentSummary.maxTotal} intents
+            </span>
           </div>
-          <span className="text-xs tabular-nums text-gray-400">
-            {intentSummary.total}/{intentSummary.maxTotal} intents
-          </span>
+          <Link
+            to="/onboarding/form"
+            className="flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-purple-600"
+          >
+            <FileText size={12} />
+            Fill manually instead
+          </Link>
         </div>
 
         <button
