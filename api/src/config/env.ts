@@ -7,6 +7,7 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   APIFY_TOKEN: z.string().min(1).optional(),
+  MOCK_PROFILE_SEARCH: z.string().optional(),
   PORT: z.coerce.number().default(3001),
 })
 

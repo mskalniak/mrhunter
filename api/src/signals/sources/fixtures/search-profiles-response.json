@@ -1,0 +1,364 @@
+[
+  {
+    "id": "ACwAAAYwvV0BvMHOadKV1cJTliR0QaYXSb4trj4",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAAYwvV0BvMHOadKV1cJTliR0QaYXSb4trj4",
+    "firstName": "Michał",
+    "lastName": "Sobieraj",
+    "openProfile": false,
+    "premium": true,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 10 },
+        "companyName": "Bart",
+        "title": "Marketing Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 10 },
+        "startedOn": { "month": 5, "year": 2024 },
+        "companyId": "68236819",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/68236819"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQGCxjaS1C-A-w/profile-displayphoto-shrink_800_800/B4DZaWD_IYGcAc-/0/1746274350301?e=1773878400&v=beta&t=reivMn1E_rfU46h9HTNElS9KiIiGZBi4z7sm7LTMO8I",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAAD43RAgBeyJHrOJvJxkUww0u7kV0Q7W50j4",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAD43RAgBeyJHrOJvJxkUww0u7kV0Q7W50j4",
+    "firstName": "Hubert",
+    "lastName": "Łada",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 3, "numMonths": 2 },
+        "companyName": "OstroVit",
+        "title": "Brand Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 6, "numMonths": 2 },
+        "startedOn": { "month": 1, "year": 2023 },
+        "companyId": "67752196",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/67752196"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQGPkuxb9IU4wQ/profile-displayphoto-crop_800_800/B4DZwlIlDLJ0AI-/0/1770149532624?e=1773878400&v=beta&t=RfsFDUrCam-MipMfYbtnokXt0l0feDUb5zYw5LzZEX0",
+    "location": { "linkedinText": "Poland" }
+  },
+  {
+    "id": "ACwAABRuBKAB6VeBisAgjvNzm_MgrI4-8kT3gik",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAABRuBKAB6VeBisAgjvNzm_MgrI4-8kT3gik",
+    "firstName": "Zoran",
+    "lastName": "Nasteski",
+    "summary": "I'm a tech entrepreneur and innovator. Co-Founder & CEO of QX, a deep-tech software company leveraging Small Language Models (SML), blockchain, and decentralized identity.",
+    "openProfile": false,
+    "premium": true,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 8 },
+        "companyName": "QX",
+        "title": "Co-Founder and CEO",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 8 },
+        "startedOn": { "month": 7, "year": 2024 },
+        "companyId": "18254034",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/18254034"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQFKORuokLLHWw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1675944133121?e=1773878400&v=beta&t=LJf3Ke_mSbb7ezuXLIRV9oa2CXny89JdNTot83OS8VQ",
+    "location": { "linkedinText": "Florence, Tuscany, Italy" }
+  },
+  {
+    "id": "ACwAAAYeI3sBa9qcs6BdO7buvta0JSvaUvHMPWo",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAAYeI3sBa9qcs6BdO7buvta0JSvaUvHMPWo",
+    "firstName": "Felix",
+    "lastName": "Rose-Collins",
+    "summary": "CEO & Co-Founder at Ranktracker. Building a single ecosystem for SEO — tracking, keyword research, audits, backlinks, reporting, and AI-powered insights.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 8, "numMonths": 6 },
+        "companyName": "Ranktracker",
+        "title": "CEO - CMO / Co-Founder",
+        "current": true,
+        "tenureAtCompany": { "numYears": 11, "numMonths": 1 },
+        "startedOn": { "month": 9, "year": 2017 },
+        "companyId": "10463668",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/10463668"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQFsyHm9hpacMg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1685003580647?e=1773878400&v=beta&t=EkZk-HHab-cKpvC941HGp5CDxauPY0PYFwCGm1giIBc",
+    "location": { "linkedinText": "Katowice, Śląskie, Poland" }
+  },
+  {
+    "id": "ACwAADw8oecBlq9_-yVRSQwxtWdOCK75g3zJ_Dk",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAADw8oecBlq9_-yVRSQwxtWdOCK75g3zJ_Dk",
+    "firstName": "Kornelia",
+    "lastName": "Cegielska",
+    "summary": "Social Media & Influencer Marketing Manager | Customer Engagement Expert | Strategic Brand Builder",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 2, "numMonths": 4 },
+        "companyName": "Blisko (formerly The Village Network)",
+        "title": "Influencer Marketing & Social Media Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 2, "numMonths": 9 },
+        "startedOn": { "month": 11, "year": 2023 },
+        "companyId": "15839444",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/15839444"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQEvzg2L3qb9aQ/profile-displayphoto-crop_800_800/B4DZl4jRScHYAI-/0/1758664140486?e=1773878400&v=beta&t=mGxDjz8DP_O-wDe9z3eMsMxc50niNkWNOAHxw6RWp8E",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAACaTwBYBHwbrJy1g363HjzGx_1swisoUYpw",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAACaTwBYBHwbrJy1g363HjzGx_1swisoUYpw",
+    "firstName": "Anna",
+    "lastName": "Plotkina",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 2 },
+        "companyName": "Playesta Limited",
+        "title": "Head of Marketing & UA (Acting CMO)",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 6 },
+        "startedOn": { "month": 1, "year": 2025 },
+        "companyId": "68585581",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/68585581"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQGDyxpF7PlisQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1694506373163?e=1773878400&v=beta&t=VVjnYI9ok5bQmowT9JddYl8cgnCVRJ2_GKhc2fHraEo",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAABtTf0gBoEGzFnViYCYCc2ZsiVQoToj107Y",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAABtTf0gBoEGzFnViYCYCc2ZsiVQoToj107Y",
+    "firstName": "Łukasz",
+    "lastName": "Łoziński",
+    "summary": "I've spent the last decade in finance and data-driven management as an analyst, advisor, entrepreneur, and external CFO.",
+    "openProfile": true,
+    "premium": true,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 8, "numMonths": 4 },
+        "companyName": "Corporate Finance Consulting",
+        "title": "Business Owner / Consultant / Interim Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 8, "numMonths": 4 },
+        "startedOn": { "month": 11, "year": 2017 },
+        "companyId": "11706620",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/11706620"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQGYk9Nw236A2Q/profile-displayphoto-crop_800_800/B4DZsSmkddJYAI-/0/1765543659875?e=1773878400&v=beta&t=oGU_0ryX6mJE0iTEv5HOBlq8GbfillGctYY-MCpKRqA",
+    "location": { "linkedinText": "Poland" }
+  },
+  {
+    "id": "ACwAACcRhJcBTlb6e5DIBplHMoKt1-JgvTejWh4",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAACcRhJcBTlb6e5DIBplHMoKt1-JgvTejWh4",
+    "firstName": "Anton",
+    "lastName": "Shashura",
+    "summary": "Head of Marketing at DevGAMM. PR, marketing, radio hosting, podcast hosting, and journalism.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 3, "numMonths": 2 },
+        "companyName": "DevGAMM",
+        "title": "Head of Marketing",
+        "current": true,
+        "tenureAtCompany": { "numYears": 5, "numMonths": 11 },
+        "startedOn": { "month": 1, "year": 2023 },
+        "companyId": "10435960",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/10435960"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQE8zGDjOL4WMA/profile-displayphoto-crop_800_800/B4DZvrQLlAKMAI-/0/1769178450378?e=1773878400&v=beta&t=q-qm0cznnzs9ZGxReOKNJyqskIPK-mwHgjt0Mn6vd1U",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAAD5tYc4BXIIpsMAOZgEJJWQoVONVvrN3-lA",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAD5tYc4BXIIpsMAOZgEJJWQoVONVvrN3-lA",
+    "firstName": "Weronika",
+    "lastName": "Wojnarowska",
+    "summary": "Head of Marketing at Girls Future Ready Foundation. Student Assistant at Ørsted.",
+    "openProfile": false,
+    "premium": true,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 8 },
+        "companyName": "Girls Future Ready",
+        "title": "Head of Marketing",
+        "current": true,
+        "tenureAtCompany": { "numYears": 3, "numMonths": 5 },
+        "startedOn": { "month": 7, "year": 2024 },
+        "companyId": "14783616",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/14783616"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQHOFwbkzX6NUg/profile-displayphoto-shrink_800_800/B4DZeZI8A7HAAk-/0/1750620947044?e=1773878400&v=beta&t=ncyfgW2yZHgJJyZKT9oortj-C0TyQx1DaYtuxn8h8jY",
+    "location": { "linkedinText": "Warsaw Metropolitan Area" }
+  },
+  {
+    "id": "ACwAAACcQCQBvZ6osHPZRFRqT6M--jUjwhQquHY",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAACcQCQBvZ6osHPZRFRqT6M--jUjwhQquHY",
+    "firstName": "Agnieszka",
+    "lastName": "Sieczka",
+    "summary": "Marketing specialist with over 15 years' experience in B2B marketing, corporate communications, digital marketing and project management.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 2, "numMonths": 2 },
+        "companyName": "DLA Piper",
+        "title": "Head of Marketing & BD | Director",
+        "current": true,
+        "tenureAtCompany": { "numYears": 2, "numMonths": 2 },
+        "startedOn": { "month": 1, "year": 2024 },
+        "companyId": "4422",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/4422"
+      }
+    ],
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAACtLgPcBw0r0C4BAsKbyVqoEaPIqtMcwt3Y",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAACtLgPcBw0r0C4BAsKbyVqoEaPIqtMcwt3Y",
+    "firstName": "Uladzimir",
+    "lastName": "Rudzenka",
+    "summary": "Affiliate Marketing Manager with almost 4 years in affiliate marketing.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 3 },
+        "companyName": "paybis.com",
+        "title": "Affiliate Marketing Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 3 },
+        "startedOn": { "month": 12, "year": 2024 },
+        "companyId": "24999130",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/24999130"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/C4D03AQHI18-T1iu2vw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1658821607159?e=1773878400&v=beta&t=7u_V3fkhyEye9katH84uwTECrGPOEJndSYifN54hc98",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAAD7Qj6gBTFCWt7KlzTBZ0zAgUuuaYXLCCZw",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAD7Qj6gBTFCWt7KlzTBZ0zAgUuuaYXLCCZw",
+    "firstName": "Marharyta",
+    "lastName": "Rohava",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 1 },
+        "companyName": "Betwinner",
+        "title": "Influencer Marketing Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 7 },
+        "startedOn": { "month": 2, "year": 2025 },
+        "companyId": "13023310",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/13023310"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4E03AQEsiPudk1vmsA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1666865296818?e=1773878400&v=beta&t=ZMqFeH0YEA6GzE1SIw1ztPTvxZ8rLjSQSTXs98h4Nys",
+    "location": { "linkedinText": "Cracow, Małopolskie, Poland" }
+  },
+  {
+    "id": "ACwAABzqIDoBc1fIVxkzuEmpWLMzcCY85VskEqQ",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAABzqIDoBc1fIVxkzuEmpWLMzcCY85VskEqQ",
+    "firstName": "Katarzyna",
+    "lastName": "Can",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 2, "numMonths": 7 },
+        "companyName": "theLeaders",
+        "title": "CEO & Founder",
+        "current": true,
+        "tenureAtCompany": { "numYears": 2, "numMonths": 7 },
+        "startedOn": { "month": 8, "year": 2023 },
+        "companyId": "99911493",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/99911493"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQGxB3ZKjWUc1A/profile-displayphoto-crop_800_800/B4DZkuoLKHJIAI-/0/1757423909770?e=1773878400&v=beta&t=XbZgzXcvoxq-tyxu-GSiQO7DBeZM50qH9yLgQ3rrtFU",
+    "location": { "linkedinText": "Wrocław, Dolnośląskie, Poland" }
+  },
+  {
+    "id": "ACwAADyA95QB_cu6eekNk5Y1HhoTfI1-nRWp3F0",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAADyA95QB_cu6eekNk5Y1HhoTfI1-nRWp3F0",
+    "firstName": "Karolina",
+    "lastName": "Kobus",
+    "summary": "Marketing Manager for CEE/CIS at LexisNexis Risk Solutions.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 1, "numMonths": 7 },
+        "companyName": "LexisNexis Risk Solutions",
+        "title": "Marketing Manager CEE/CIS",
+        "current": true,
+        "tenureAtCompany": { "numYears": 1, "numMonths": 7 },
+        "startedOn": { "month": 8, "year": 2024 },
+        "companyId": "10371941",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/10371941"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4E03AQGyYfe_S1bG8A/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1683721497786?e=1773878400&v=beta&t=Cj0anCxPFdSOGRYpFJCyDxwBcImcfS7IyMzOm-saVyA",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  },
+  {
+    "id": "ACwAABsgacQB47Fb0hjDqbFbkRH-fg-HGH0h6mk",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAABsgacQB47Fb0hjDqbFbkRH-fg-HGH0h6mk",
+    "firstName": "Piotr",
+    "lastName": "Mazur - Łysakowski",
+    "summary": "Digital marketing specialist. Digital Marketing Manager at Space Fox Digital Marketing Agency.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 4, "numMonths": 3 },
+        "companyName": "Space Fox Digital Marketing Agency",
+        "title": "Digital Marketing Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 4, "numMonths": 3 },
+        "startedOn": { "month": 12, "year": 2021 },
+        "companyId": "96201604",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/96201604"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQHy-9pSzEPQdA/profile-displayphoto-crop_800_800/B4DZmp8nFTHYAI-/0/1759492863120?e=1773878400&v=beta&t=BG2gX6pM3LhR7IVcaLImjsb8EhD3semTnaWZ3PkNVWw",
+    "location": { "linkedinText": "Szczecin, Zachodniopomorskie, Poland" }
+  },
+  {
+    "id": "ACwAAD-XnsIBMSl7z8S1VmGDeds62b8IEx003lQ",
+    "linkedinUrl": "https://www.linkedin.com/in/ACwAAD-XnsIBMSl7z8S1VmGDeds62b8IEx003lQ",
+    "firstName": "Aliona",
+    "lastName": "Safronenka",
+    "summary": "Marketing Manager with over three years of freelance experience. Social Media Marketing, Content creation, Video editing.",
+    "openProfile": false,
+    "premium": false,
+    "currentPositions": [
+      {
+        "tenureAtPosition": { "numYears": 2 },
+        "companyName": "Maxbitsolution",
+        "title": "Social Media Marketing Manager",
+        "current": true,
+        "tenureAtCompany": { "numYears": 2 },
+        "startedOn": { "month": 3, "year": 2024 },
+        "companyId": "40925320",
+        "companyLinkedinUrl": "https://www.linkedin.com/company/40925320"
+      }
+    ],
+    "pictureUrl": "https://media.licdn.com/dms/image/v2/D4D03AQHOtuwkphMGHg/profile-displayphoto-crop_800_800/B4DZx8.tmMI8AM-/0/1771623341418?e=1773878400&v=beta&t=ow8XOc1x1OdKyZ8nn5SR11hYhGJ5xpGjBlyYg9QWIuQ",
+    "location": { "linkedinText": "Warsaw, Mazowieckie, Poland" }
+  }
+]

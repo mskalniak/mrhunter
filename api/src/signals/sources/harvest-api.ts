@@ -1,4 +1,10 @@
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { dirname, join } from "node:path"
 import { getRequiredApifyEnv } from "../../config/env.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -84,18 +90,28 @@ export type HarvestProfile = {
   certifications?: Array<{ title: string; issuedAt?: string; issuedBy?: string }>
 }
 
+export type HarvestProfileSearchPosition = {
+  tenureAtPosition?: { numYears?: number; numMonths?: number }
+  companyName: string
+  title: string
+  current?: boolean
+  tenureAtCompany?: { numYears?: number; numMonths?: number }
+  startedOn?: { month?: number; year?: number }
+  companyId?: string
+  companyLinkedinUrl?: string
+}
+
 export type HarvestProfileSearchResult = {
   id: string
-  publicIdentifier: string
+  linkedinUrl: string
   firstName?: string
   lastName?: string
-  name?: string
-  headline?: string
-  position?: string
+  summary?: string
+  openProfile?: boolean
+  premium?: boolean
+  currentPositions?: HarvestProfileSearchPosition[]
+  pictureUrl?: string
   location?: { linkedinText: string }
-  linkedinUrl: string
-  photo?: string
-  profilePicture?: { url: string }
 }
 
 export type HarvestJob = {
@@ -467,6 +483,14 @@ export async function searchProfiles(
   search: string,
   opts?: ProfileSearchOpts,
 ): Promise<HarvestProfileSearchResult[]> {
+  console.log(`[apify] MOCK_PROFILE_SEARCH=${process.env.MOCK_PROFILE_SEARCH}`)
+  if (process.env.MOCK_PROFILE_SEARCH === "true") {
+    console.log(`[apify] MOCK MODE: returning fixture data for searchProfiles`)
+    const fixturePath = join(__dirname, "fixtures", "search-profiles-response.json")
+    const data = JSON.parse(readFileSync(fixturePath, "utf-8")) as HarvestProfileSearchResult[]
+    return data
+  }
+
   const input: Record<string, unknown> = {
     searchQuery: search,
     maxItems: opts?.maxItems ?? 25,

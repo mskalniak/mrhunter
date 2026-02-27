@@ -217,35 +217,50 @@ export async function runSignalDetection(
     const budget = getBudgetStatus()
     console.log(`[signals] Total: ${allSignals.length}, Unique: ${uniqueSignals.length}, API calls used: ${budget.used}/${budget.budget}`)
 
-    // 8. Store signals in signals table
-    const signalInserts = uniqueSignals.map((signal) => ({
-      user_id: userId,
-      icp_profile_id: icpProfileId,
-      source_url: signal.sourceUrl,
-      signal_type: signal.signalType,
-      title: signal.title,
-      snippet: signal.snippet,
-      raw_data: {
-        detectorId: signal.detectorId,
-        strength: signal.strength,
-        scorePoints: signal.scorePoints,
-        linkedinUrl: signal.linkedinUrl,
-        name: signal.name,
-        headline: signal.headline,
-        company: signal.company,
-      },
-      search_batch_id: searchRun.id,
-    }))
-
+    // 8. Store signals in signals table (skip duplicates from previous runs)
     let insertedSignals: Array<{ id: string }> = []
-    if (signalInserts.length > 0) {
-      const { data: signals, error: sigError } = await supabaseAdmin
-        .from("signals")
-        .insert(signalInserts)
-        .select("id")
+    const signalsToInsert: typeof uniqueSignals = []
 
-      if (sigError) throw sigError
-      insertedSignals = signals ?? []
+    for (const signal of uniqueSignals) {
+      const { data: existing } = await supabaseAdmin
+        .from("signals")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("source_url", signal.sourceUrl)
+        .eq("signal_type", signal.signalType)
+        .eq("icp_profile_id", icpProfileId)
+        .limit(1)
+        .single()
+
+      if (existing) {
+        insertedSignals.push({ id: existing.id })
+      } else {
+        const { data: inserted, error: sigError } = await supabaseAdmin
+          .from("signals")
+          .insert({
+            user_id: userId,
+            icp_profile_id: icpProfileId,
+            source_url: signal.sourceUrl,
+            signal_type: signal.signalType,
+            title: signal.title,
+            snippet: signal.snippet,
+            raw_data: {
+              detectorId: signal.detectorId,
+              strength: signal.strength,
+              scorePoints: signal.scorePoints,
+              linkedinUrl: signal.linkedinUrl,
+              name: signal.name,
+              headline: signal.headline,
+              company: signal.company,
+            },
+            search_batch_id: searchRun.id,
+          })
+          .select("id")
+          .single()
+
+        if (sigError) throw sigError
+        insertedSignals.push({ id: inserted!.id })
+      }
     }
 
     // 9. Group signals by person and score with diminishing returns

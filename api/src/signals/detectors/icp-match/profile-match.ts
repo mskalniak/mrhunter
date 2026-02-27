@@ -13,17 +13,23 @@ export const profileMatch: SignalDetector = {
     const signals: DetectedSignal[] = []
 
     for (const profile of ctx.data.profiles) {
+      const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || undefined
+      const position = profile.currentPositions?.[0]
+      const headline = position?.title ?? profile.summary ?? undefined
+      const company = position?.companyName ?? undefined
+
       signals.push({
         detectorId: "5.1",
         signalType: "icp_match",
         strength: "low",
         scorePoints: 15,
         linkedinUrl: profile.linkedinUrl,
-        name: profile.name ?? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ?? undefined,
-        headline: profile.headline ?? profile.position ?? undefined,
-        photoUrl: profile.photo ?? profile.profilePicture?.url,
+        name,
+        headline,
+        company,
+        photoUrl: profile.pictureUrl,
         title: "Matches your ICP",
-        snippet: profile.headline ?? profile.position ?? "Profile matching your Ideal Customer Profile",
+        snippet: headline ?? "Profile matching your Ideal Customer Profile",
         sourceUrl: profile.linkedinUrl,
       })
     }
