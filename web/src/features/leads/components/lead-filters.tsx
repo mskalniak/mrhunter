@@ -19,6 +19,7 @@ const SIGNAL_OPTIONS: { value: SignalType; label: string }[] = [
   { value: "funding", label: "Funding" },
   { value: "role_change", label: "New Role" },
   { value: "event", label: "Event" },
+  { value: "icp_match", label: "ICP Match" },
 ]
 
 const STATUS_OPTIONS: { value: LeadStatus; label: string }[] = [

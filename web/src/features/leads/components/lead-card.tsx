@@ -58,6 +58,7 @@ const SIGNAL_LABELS: Record<SignalType, string> = {
   funding: "Funding",
   role_change: "New Role",
   event: "Event",
+  icp_match: "ICP Match",
 }
 
 const SIGNAL_COLORS: Record<SignalType, string> = {
@@ -67,6 +68,7 @@ const SIGNAL_COLORS: Record<SignalType, string> = {
   funding: "bg-green-100 text-green-700",
   role_change: "bg-yellow-100 text-yellow-700",
   event: "bg-pink-100 text-pink-700",
+  icp_match: "bg-slate-100 text-slate-600",
 }
 
 function ScoreBadge({ score }: { score: number }) {
