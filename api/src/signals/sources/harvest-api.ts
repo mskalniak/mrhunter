@@ -164,6 +164,8 @@ export type ProfileSearchOpts = {
   locations?: string[]
   industryIds?: string[]
   maxItems?: number
+  profileScraperMode?: 'Short' | 'Full' | 'Full + email search',
+  profileLanguages?: string[]
 }
 
 // ── Budget & rate limiting ────────────────────────────────────────────
@@ -309,6 +311,8 @@ export async function searchProfiles(
   if (opts?.currentCompanies) input.currentCompanies = opts.currentCompanies
   if (opts?.currentJobTitles) input.currentJobTitles = opts.currentJobTitles
   if (opts?.industryIds) input.industryIds = opts.industryIds
+  if (opts?.profileScraperMode) input.profileScraperMode = opts.profileScraperMode
+  if (opts?.profileLanguages) input.profileLanguages = opts.profileLanguages
 
   return apifyRunActor<HarvestProfileSearchResult>("harvestapi~linkedin-profile-search", input)
 }

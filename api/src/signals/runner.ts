@@ -66,89 +66,40 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
   console.log(`  titles: [${titles.join(", ")}] (${titles.length})`)
   console.log(`  location: ${location ?? "(none)"}`)
 
-  // ── Competitor posts (week) + comments
-  console.log("[prefetch] Fetching competitor posts (week)...")
-  const competitorWeek = await fetchCompetitorPosts(competitors, "week", "week", 3, 20)
-  for (const cw of competitorWeek) {
-    const totalComments = [...cw.commentsByPostUrl.values()].reduce((s, c) => s + c.length, 0)
-    console.log(`[prefetch]   ${cw.competitor}: ${cw.posts.length} posts, ${totalComments} comments`)
-  }
+  // ── Competitor posts (week) + comments — DISABLED
+  // console.log("[prefetch] Fetching competitor posts (week)...")
+  // const competitorWeek = await fetchCompetitorPosts(competitors, "week", "week", 3, 20)
+  const competitorWeek: CompetitorPostData[] = []
 
-  // ── Competitor posts (month) + comments
-  console.log("[prefetch] Fetching competitor posts (month)...")
-  const competitorMonth = await fetchCompetitorPosts(competitors, "month", "month", 3, 20)
-  for (const cm of competitorMonth) {
-    const totalComments = [...cm.commentsByPostUrl.values()].reduce((s, c) => s + c.length, 0)
-    console.log(`[prefetch]   ${cm.competitor}: ${cm.posts.length} posts, ${totalComments} comments`)
-  }
+  // ── Competitor posts (month) + comments — DISABLED
+  // console.log("[prefetch] Fetching competitor posts (month)...")
+  // const competitorMonth = await fetchCompetitorPosts(competitors, "month", "month", 3, 20)
+  const competitorMonth: CompetitorPostData[] = []
 
-  // ── Keyword posts
-  console.log("[prefetch] Fetching keyword posts...")
+  // ── Keyword posts — DISABLED
   const keywordPosts = new Map<string, harvest.HarvestPost[]>()
-  for (const keyword of keywords.slice(0, 3)) {
-    try {
-      const posts = await harvest.searchPosts(keyword, { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 })
-      keywordPosts.set(keyword, posts.slice(0, 15))
-      console.log(`[prefetch]   "${keyword}": ${posts.length} posts`)
-    } catch (err) {
-      console.error(`[prefetch]   "${keyword}": FAILED -`, err instanceof Error ? err.message : err)
-    }
-  }
 
-  // ── Recommendation posts
-  console.log("[prefetch] Fetching recommendation posts...")
-  let recommendationPosts: harvest.HarvestPost[] = []
-  try {
-    const posts = await harvest.searchPosts(
-      "who can recommend OR looking for recommendations OR any suggestions for",
-      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 },
-    )
-    recommendationPosts = posts.slice(0, 15)
-    console.log(`[prefetch]   recommendation posts: ${recommendationPosts.length}`)
-  } catch (err) {
-    console.error("[prefetch]   recommendation posts: FAILED -", err instanceof Error ? err.message : err)
-  }
+  // ── Recommendation posts — DISABLED
+  const recommendationPosts: harvest.HarvestPost[] = []
 
-  // ── Demo/trial posts
-  console.log("[prefetch] Fetching demo/trial posts...")
-  let demoTrialPosts: harvest.HarvestPost[] = []
-  try {
-    const posts = await harvest.searchPosts(
-      "looking for demo OR free trial OR want to try",
-      { postedLimit: "week", scrapePostedLimit: "week", sortBy: "date", maxPosts: 15 },
-    )
-    demoTrialPosts = posts.slice(0, 15)
-    console.log(`[prefetch]   demo/trial posts: ${demoTrialPosts.length}`)
-  } catch (err) {
-    console.error("[prefetch]   demo/trial posts: FAILED -", err instanceof Error ? err.message : err)
-  }
+  // ── Demo/trial posts — DISABLED
+  const demoTrialPosts: harvest.HarvestPost[] = []
 
-  // ── New role posts
-  console.log("[prefetch] Fetching new role posts...")
-  let newRolePosts: harvest.HarvestPost[] = []
-  try {
-    const posts = await harvest.searchPosts('#newrole OR #newjob OR "excited to announce"', {
-      postedLimit: "week",
-      scrapePostedLimit: "week",
-      sortBy: "date",
-      maxPosts: 20,
-    })
-    newRolePosts = posts.slice(0, 20)
-    console.log(`[prefetch]   new role posts: ${newRolePosts.length}`)
-  } catch (err) {
-    console.error("[prefetch]   new role posts: FAILED -", err instanceof Error ? err.message : err)
-  }
+  // ── New role posts — DISABLED
+  const newRolePosts: harvest.HarvestPost[] = []
 
   // ── Profile search (single API call with all titles)
   console.log("[prefetch] Fetching profiles...")
   const profilesByTitle = new Map<string, harvest.HarvestProfileSearchResult[]>()
-  const titlesToSearch = titles.slice(0, 3)
+  const titlesToSearch = titles;
   try {
-    const searchQuery = titlesToSearch.join(" OR ")
+    const searchQuery = titlesToSearch.slice(0, 3).join(' OR ');
     const profiles = await harvest.searchProfiles(searchQuery, {
       currentJobTitles: titlesToSearch,
       locations: location ? [location] : undefined,
       maxItems: 25,
+      profileScraperMode: 'Short',
+      profileLanguages: ['English', 'Polish'],
     })
     // Distribute results into the map by matching title
     for (const profile of profiles) {
@@ -172,65 +123,14 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
     console.error(`[prefetch]   profiles: FAILED -`, err instanceof Error ? err.message : err)
   }
 
-  // ── Full profiles
-  console.log("[prefetch] Fetching full profiles...")
+  // ── Full profiles — DISABLED
   const fullProfiles = new Map<string, harvest.HarvestProfile>()
-  for (const [, results] of profilesByTitle) {
-    for (const result of results) {
-      if (fullProfiles.has(result.linkedinUrl)) continue
-      try {
-        const profile = await harvest.getProfile(result.linkedinUrl)
-        if (profile) fullProfiles.set(result.linkedinUrl, profile)
-      } catch (err) {
-        console.error(`[prefetch]   profile ${result.linkedinUrl}: FAILED -`, err instanceof Error ? err.message : err)
-      }
-    }
-  }
-  console.log(`[prefetch]   full profiles fetched: ${fullProfiles.size}`)
 
-  // ── Job searches (week) — single API call with all titles
-  console.log("[prefetch] Fetching jobs (week)...")
+  // ── Job searches (week) — DISABLED
   const jobsByTitleWeek = new Map<string, harvest.HarvestJob[]>()
-  try {
-    const jobs = await harvest.searchJobs(titlesToSearch, { postedLimit: "week", sortBy: "date", locations: location ? [location] : undefined, maxItems: 25 })
-    // Distribute results by matching title
-    for (const job of jobs) {
-      const matchedTitle = titlesToSearch.find((t) =>
-        job.title?.toLowerCase().includes(t.toLowerCase()),
-      ) ?? titlesToSearch[0]
-      const existing = jobsByTitleWeek.get(matchedTitle) ?? []
-      existing.push(job)
-      jobsByTitleWeek.set(matchedTitle, existing)
-    }
-    for (const title of titlesToSearch) {
-      console.log(`[prefetch]   "${title}": ${jobsByTitleWeek.get(title)?.length ?? 0} jobs (week)`)
-    }
-    console.log(`[prefetch]   total jobs (week): ${jobs.length}`)
-  } catch (err) {
-    console.error(`[prefetch]   jobs (week): FAILED -`, err instanceof Error ? err.message : err)
-  }
 
-  // ── Job searches (month) — single API call with all titles
-  console.log("[prefetch] Fetching jobs (month)...")
+  // ── Job searches (month) — DISABLED
   const jobsByTitleMonth = new Map<string, harvest.HarvestJob[]>()
-  try {
-    const jobs = await harvest.searchJobs(titlesToSearch, { postedLimit: "month", sortBy: "date", locations: location ? [location] : undefined, maxItems: 25 })
-    // Distribute results by matching title
-    for (const job of jobs) {
-      const matchedTitle = titlesToSearch.find((t) =>
-        job.title?.toLowerCase().includes(t.toLowerCase()),
-      ) ?? titlesToSearch[0]
-      const existing = jobsByTitleMonth.get(matchedTitle) ?? []
-      existing.push(job)
-      jobsByTitleMonth.set(matchedTitle, existing)
-    }
-    for (const title of titlesToSearch) {
-      console.log(`[prefetch]   "${title}": ${jobsByTitleMonth.get(title)?.length ?? 0} jobs (month)`)
-    }
-    console.log(`[prefetch]   total jobs (month): ${jobs.length}`)
-  } catch (err) {
-    console.error(`[prefetch]   jobs (month): FAILED -`, err instanceof Error ? err.message : err)
-  }
 
   const budget = getBudgetStatus()
   console.log(`[prefetch] Done. API calls used: ${budget.used}/${budget.budget}`)
