@@ -90,37 +90,19 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
 
   // ── Profile search (single API call with all titles)
   console.log("[prefetch] Fetching profiles...")
-  const profilesByTitle = new Map<string, harvest.HarvestProfileSearchResult[]>()
-  const titlesToSearch = titles;
+  let profiles: harvest.HarvestProfileSearchResult[] = []
   try {
-    const searchQuery = titlesToSearch.slice(0, 3).join(' OR ');
+    const searchQuery = titles.slice(0, 3).join(' OR ')
     const profileLanguages = harvest.getProfileLanguagesForLocation(location)
     console.log(`[prefetch]   location: ${location ?? "(none)"} → languages: ${profileLanguages?.join(", ") ?? "default"}`)
-    const profiles = await harvest.searchProfiles(searchQuery, {
-      currentJobTitles: titlesToSearch,
+    profiles = await harvest.searchProfiles(searchQuery, {
+      currentJobTitles: titles,
       locations: location ? [location] : undefined,
       maxItems: 25,
       profileScraperMode: 'Short',
       profileLanguages,
     })
-    // Distribute results into the map by matching title
-    for (const profile of profiles) {
-      const matchedTitle = titlesToSearch.find((t) => {
-        const titleLower = t.toLowerCase()
-        return (
-          profile.headline?.toLowerCase().includes(titleLower) ||
-          profile.position?.toLowerCase().includes(titleLower)
-        )
-      }) ?? titlesToSearch[0]
-      const existing = profilesByTitle.get(matchedTitle) ?? []
-      existing.push(profile)
-      profilesByTitle.set(matchedTitle, existing)
-    }
-    for (const title of titlesToSearch) {
-      const count = profilesByTitle.get(title)?.length ?? 0
-      console.log(`[prefetch]   "${title}": ${count} profiles`)
-    }
-    console.log(`[prefetch]   total profiles: ${profiles.length}`)
+    console.log(`[prefetch]   profiles found: ${profiles.length}`)
   } catch (err) {
     console.error(`[prefetch]   profiles: FAILED -`, err instanceof Error ? err.message : err)
   }
@@ -144,7 +126,7 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
     recommendationPosts,
     demoTrialPosts,
     newRolePosts,
-    profilesByTitle,
+    profiles,
     fullProfiles,
     jobsByTitleWeek,
     jobsByTitleMonth,

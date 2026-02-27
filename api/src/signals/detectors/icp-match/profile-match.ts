@@ -12,22 +12,20 @@ export const profileMatch: SignalDetector = {
   async detect(ctx: DetectionContext): Promise<DetectedSignal[]> {
     const signals: DetectedSignal[] = []
 
-    for (const [title, profiles] of ctx.data.profilesByTitle) {
-      for (const profile of profiles) {
-        signals.push({
-          detectorId: "5.1",
-          signalType: "icp_match",
-          strength: "low",
-          scorePoints: 15,
-          linkedinUrl: profile.linkedinUrl,
-          name: profile.name ?? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ?? undefined,
-          headline: profile.headline ?? profile.position ?? undefined,
-          photoUrl: profile.photo ?? profile.profilePicture?.url,
-          title: `Matches ICP title: ${title}`,
-          snippet: profile.headline ?? profile.position ?? `Profile matching "${title}"`,
-          sourceUrl: profile.linkedinUrl,
-        })
-      }
+    for (const profile of ctx.data.profiles) {
+      signals.push({
+        detectorId: "5.1",
+        signalType: "icp_match",
+        strength: "low",
+        scorePoints: 15,
+        linkedinUrl: profile.linkedinUrl,
+        name: profile.name ?? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ?? undefined,
+        headline: profile.headline ?? profile.position ?? undefined,
+        photoUrl: profile.photo ?? profile.profilePicture?.url,
+        title: "Matches your ICP",
+        snippet: profile.headline ?? profile.position ?? "Profile matching your Ideal Customer Profile",
+        sourceUrl: profile.linkedinUrl,
+      })
     }
 
     return signals

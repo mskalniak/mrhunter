@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS signals (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   icp_profile_id UUID NOT NULL REFERENCES icp_profiles(id) ON DELETE CASCADE,
   source_url TEXT NOT NULL,
-  signal_type TEXT NOT NULL CHECK (signal_type IN ('hiring', 'pain_point', 'competitor_engagement', 'funding', 'role_change', 'event')),
+  signal_type TEXT NOT NULL CHECK (signal_type IN ('hiring', 'pain_point', 'competitor_engagement', 'funding', 'role_change', 'event', 'icp_match')),
   title TEXT NOT NULL,
   snippet TEXT NOT NULL DEFAULT '',
   raw_data JSONB NOT NULL DEFAULT '{}',

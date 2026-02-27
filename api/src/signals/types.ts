@@ -22,8 +22,8 @@ export type PrefetchedData = {
   demoTrialPosts: HarvestPost[]
   /** "New role" announcement posts — used by 3.3 */
   newRolePosts: HarvestPost[]
-  /** Profile search results per title — used by 3.1, 3.2 */
-  profilesByTitle: Map<string, HarvestProfileSearchResult[]>
+  /** Profile search results matching ICP — used by 5.1 */
+  profiles: HarvestProfileSearchResult[]
   /** Full profiles fetched by URL — used by 3.1, 3.2 */
   fullProfiles: Map<string, HarvestProfile>
   /** Job search results per title (week) — used by 4.1, 4.3 */
