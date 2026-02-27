@@ -127,6 +127,111 @@ export type HarvestJob = {
   salary?: { text?: string | null; min?: number | null; max?: number | null }
 }
 
+// ── Location → language mapping ──────────────────────────────────────
+
+/** Maps location strings (country names, codes, cities) to ProfileLanguage values.
+ *  Always includes English in addition to the local language. */
+const LOCATION_LANGUAGE_MAP: Record<string, ProfileLanguage[]> = {
+  // Country names
+  'poland': ['Polish'],
+  'polska': ['Polish'],
+  'germany': ['German'],
+  'deutschland': ['German'],
+  'france': ['French'],
+  'spain': ['Spanish'],
+  'españa': ['Spanish'],
+  'italy': ['Italian'],
+  'italia': ['Italian'],
+  'portugal': ['Portuguese'],
+  'brazil': ['Portuguese'],
+  'brasil': ['Portuguese'],
+  'netherlands': ['Dutch'],
+  'holland': ['Dutch'],
+  'turkey': ['Turkish'],
+  'türkiye': ['Turkish'],
+  'russia': ['Russian'],
+  'japan': ['Japanese'],
+  'south korea': ['Korean'],
+  'korea': ['Korean'],
+  'china': ['Chinese'],
+  'taiwan': ['Chinese'],
+  'indonesia': ['Bahasa Indonesia'],
+  'malaysia': ['Malay'],
+  'philippines': ['Tagalog'],
+  'romania': ['Romanian'],
+  'czech republic': ['Czech'],
+  'czechia': ['Czech'],
+  'sweden': ['Swedish'],
+  'norway': ['Norwegian'],
+  'denmark': ['Danish'],
+  'saudi arabia': ['Arabic'],
+  'uae': ['Arabic'],
+  'united arab emirates': ['Arabic'],
+  'egypt': ['Arabic'],
+  // Major cities → language
+  'warsaw': ['Polish'],
+  'krakow': ['Polish'],
+  'kraków': ['Polish'],
+  'wroclaw': ['Polish'],
+  'wrocław': ['Polish'],
+  'gdansk': ['Polish'],
+  'gdańsk': ['Polish'],
+  'berlin': ['German'],
+  'munich': ['German'],
+  'münchen': ['German'],
+  'hamburg': ['German'],
+  'frankfurt': ['German'],
+  'paris': ['French'],
+  'lyon': ['French'],
+  'madrid': ['Spanish'],
+  'barcelona': ['Spanish'],
+  'rome': ['Italian'],
+  'milan': ['Italian'],
+  'milano': ['Italian'],
+  'lisbon': ['Portuguese'],
+  'são paulo': ['Portuguese'],
+  'rio de janeiro': ['Portuguese'],
+  'amsterdam': ['Dutch'],
+  'istanbul': ['Turkish'],
+  'moscow': ['Russian'],
+  'tokyo': ['Japanese'],
+  'seoul': ['Korean'],
+  'beijing': ['Chinese'],
+  'shanghai': ['Chinese'],
+  'jakarta': ['Bahasa Indonesia'],
+  'manila': ['Tagalog'],
+  'bucharest': ['Romanian'],
+  'prague': ['Czech'],
+  'stockholm': ['Swedish'],
+  'oslo': ['Norwegian'],
+  'copenhagen': ['Danish'],
+  'dubai': ['Arabic'],
+  'cairo': ['Arabic'],
+  'riyadh': ['Arabic'],
+}
+
+/**
+ * Given a location string (e.g. "Poland", "Warsaw, Poland"),
+ * returns profile languages: the local language(s) + English.
+ * Returns undefined if no mapping found (lets API use its defaults).
+ */
+export function getProfileLanguagesForLocation(location: string | undefined): ProfileLanguage[] | undefined {
+  if (!location) return undefined
+
+  const parts = location.toLowerCase().split(/[,;\/]+/).map(s => s.trim())
+  const languages = new Set<ProfileLanguage>(['English'])
+
+  for (const part of parts) {
+    const mapped = LOCATION_LANGUAGE_MAP[part]
+    if (mapped) {
+      for (const lang of mapped) languages.add(lang)
+    }
+  }
+
+  // Only return if we found something beyond just English
+  return languages.size > 1 ? [...languages] : undefined
+}
+
 // ── Option types ───────────────────────────────────────────────────────
 
 export type PostSearchOpts = {
@@ -158,14 +263,73 @@ export type JobSearchOpts = {
   maxItems?: number
 }
 
+// See openapi-specs/linkedin-profile-search.json for full API reference
+export type ProfileScraperMode = 'Short' | 'Full' | 'Full + email search'
+
+export type ProfileLanguage =
+  | 'Arabic' | 'English' | 'Spanish' | 'Portuguese' | 'Chinese'
+  | 'French' | 'Italian' | 'Russian' | 'German' | 'Dutch'
+  | 'Turkish' | 'Tagalog' | 'Polish' | 'Korean' | 'Japanese'
+  | 'Malay' | 'Norwegian' | 'Danish' | 'Romanian' | 'Swedish'
+  | 'Bahasa Indonesia' | 'Czech'
+
+/** 1=<1yr, 2=1-2yr, 3=3-5yr, 4=6-10yr, 5=10+yr */
+export type YearsOfExperienceId = '1' | '2' | '3' | '4' | '5'
+
+/** 100=In Training, 110=Entry Level, 120=Senior, 130=Strategic,
+ *  200=Entry Level Manager, 210=Experienced Manager, 220=Director,
+ *  300=VP, 310=CXO, 320=Owner/Partner */
+export type SeniorityLevelId = '100' | '110' | '120' | '130' | '200' | '210' | '220' | '300' | '310' | '320'
+
+/** 1=Accounting … 26=Customer Success. See openapi spec for full mapping. */
+export type FunctionId = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10'
+  | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20'
+  | '21' | '22' | '23' | '24' | '25' | '26'
+
+/** A=Self-Employed, B=1-10, C=11-50, D=51-200, E=201-500,
+ *  F=501-1000, G=1001-5000, H=5001-10000, I=10001+ */
+export type CompanyHeadcountId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I'
+
 export type ProfileSearchOpts = {
-  currentCompanies?: string[]
-  currentJobTitles?: string[]
-  locations?: string[]
-  industryIds?: string[]
+  // Scraper settings
+  profileScraperMode?: ProfileScraperMode
   maxItems?: number
-  profileScraperMode?: 'Short' | 'Full' | 'Full + email search',
-  profileLanguages?: string[]
+  startPage?: number
+  takePages?: number
+
+  // Include filters
+  locations?: string[]
+  currentCompanies?: string[]
+  pastCompanies?: string[]
+  schools?: string[]
+  currentJobTitles?: string[]
+  pastJobTitles?: string[]
+  firstNames?: string[]
+  lastNames?: string[]
+  profileLanguages?: ProfileLanguage[]
+  industryIds?: string[]
+  seniorityLevelIds?: SeniorityLevelId[]
+  functionIds?: FunctionId[]
+  yearsOfExperienceIds?: YearsOfExperienceId[]
+  yearsAtCurrentCompanyIds?: YearsOfExperienceId[]
+  companyHeadcount?: CompanyHeadcountId[]
+  recentlyChangedJobs?: boolean
+
+  // Exclude filters
+  excludeLocations?: string[]
+  excludeCurrentCompanies?: string[]
+  excludePastCompanies?: string[]
+  excludeSchools?: string[]
+  excludeCurrentJobTitles?: string[]
+  excludePastJobTitles?: string[]
+  excludeIndustryIds?: string[]
+  excludeSeniorityLevelIds?: SeniorityLevelId[]
+  excludeFunctionIds?: FunctionId[]
+
+  // Auto segmentation
+  autoQuerySegmentation?: boolean
+  autoQuerySegmentationLevels?: ('default' | 'country' | 'state' | 'seniority_level' | 'industry')[]
+  autoQuerySegmentationTargetCountries?: string[]
 }
 
 // ── Budget & rate limiting ────────────────────────────────────────────
@@ -307,12 +471,45 @@ export async function searchProfiles(
     searchQuery: search,
     maxItems: opts?.maxItems ?? 25,
   }
+
+  // Scraper settings
+  if (opts?.profileScraperMode) input.profileScraperMode = opts.profileScraperMode
+  if (opts?.startPage) input.startPage = opts.startPage
+  if (opts?.takePages) input.takePages = opts.takePages
+
+  // Include filters
   if (opts?.locations) input.locations = opts.locations
   if (opts?.currentCompanies) input.currentCompanies = opts.currentCompanies
+  if (opts?.pastCompanies) input.pastCompanies = opts.pastCompanies
+  if (opts?.schools) input.schools = opts.schools
   if (opts?.currentJobTitles) input.currentJobTitles = opts.currentJobTitles
-  if (opts?.industryIds) input.industryIds = opts.industryIds
-  if (opts?.profileScraperMode) input.profileScraperMode = opts.profileScraperMode
+  if (opts?.pastJobTitles) input.pastJobTitles = opts.pastJobTitles
+  if (opts?.firstNames) input.firstNames = opts.firstNames
+  if (opts?.lastNames) input.lastNames = opts.lastNames
   if (opts?.profileLanguages) input.profileLanguages = opts.profileLanguages
+  if (opts?.industryIds) input.industryIds = opts.industryIds
+  if (opts?.seniorityLevelIds) input.seniorityLevelIds = opts.seniorityLevelIds
+  if (opts?.functionIds) input.functionIds = opts.functionIds
+  if (opts?.yearsOfExperienceIds) input.yearsOfExperienceIds = opts.yearsOfExperienceIds
+  if (opts?.yearsAtCurrentCompanyIds) input.yearsAtCurrentCompanyIds = opts.yearsAtCurrentCompanyIds
+  if (opts?.companyHeadcount) input.companyHeadcount = opts.companyHeadcount
+  if (opts?.recentlyChangedJobs !== undefined) input.recentlyChangedJobs = opts.recentlyChangedJobs
+
+  // Exclude filters
+  if (opts?.excludeLocations) input.excludeLocations = opts.excludeLocations
+  if (opts?.excludeCurrentCompanies) input.excludeCurrentCompanies = opts.excludeCurrentCompanies
+  if (opts?.excludePastCompanies) input.excludePastCompanies = opts.excludePastCompanies
+  if (opts?.excludeSchools) input.excludeSchools = opts.excludeSchools
+  if (opts?.excludeCurrentJobTitles) input.excludeCurrentJobTitles = opts.excludeCurrentJobTitles
+  if (opts?.excludePastJobTitles) input.excludePastJobTitles = opts.excludePastJobTitles
+  if (opts?.excludeIndustryIds) input.excludeIndustryIds = opts.excludeIndustryIds
+  if (opts?.excludeSeniorityLevelIds) input.excludeSeniorityLevelIds = opts.excludeSeniorityLevelIds
+  if (opts?.excludeFunctionIds) input.excludeFunctionIds = opts.excludeFunctionIds
+
+  // Auto segmentation
+  if (opts?.autoQuerySegmentation !== undefined) input.autoQuerySegmentation = opts.autoQuerySegmentation
+  if (opts?.autoQuerySegmentationLevels) input.autoQuerySegmentationLevels = opts.autoQuerySegmentationLevels
+  if (opts?.autoQuerySegmentationTargetCountries) input.autoQuerySegmentationTargetCountries = opts.autoQuerySegmentationTargetCountries
 
   return apifyRunActor<HarvestProfileSearchResult>("harvestapi~linkedin-profile-search", input)
 }

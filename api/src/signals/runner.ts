@@ -94,12 +94,14 @@ async function prefetchData(icp: ParsedIcpConfig): Promise<PrefetchedData> {
   const titlesToSearch = titles;
   try {
     const searchQuery = titlesToSearch.slice(0, 3).join(' OR ');
+    const profileLanguages = harvest.getProfileLanguagesForLocation(location)
+    console.log(`[prefetch]   location: ${location ?? "(none)"} → languages: ${profileLanguages?.join(", ") ?? "default"}`)
     const profiles = await harvest.searchProfiles(searchQuery, {
       currentJobTitles: titlesToSearch,
       locations: location ? [location] : undefined,
       maxItems: 25,
       profileScraperMode: 'Short',
-      profileLanguages: ['English', 'Polish'],
+      profileLanguages,
     })
     // Distribute results into the map by matching title
     for (const profile of profiles) {

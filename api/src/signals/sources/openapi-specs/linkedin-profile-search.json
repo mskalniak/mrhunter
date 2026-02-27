@@ -1,0 +1,288 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "LinkedIn Profile Search Scraper No Cookies - Find all people",
+    "description": "Search for LinkedIn profiles with filters and extract detailed profile information, including work experience, education history, location and more. No cookies or account required.",
+    "version": "0.0",
+    "x-build-id": "EAu8K2VgPSyyOfSP4"
+  },
+  "servers": [
+    {
+      "url": "https://api.apify.com/v2"
+    }
+  ],
+  "paths": {
+    "/acts/harvestapi~linkedin-profile-search/run-sync-get-dataset-items": {
+      "post": {
+        "operationId": "run-sync-get-dataset-items-harvestapi-linkedin-profile-search",
+        "x-openai-isConsequential": false,
+        "summary": "Executes an Actor, waits for its completion, and returns Actor's dataset items in response.",
+        "tags": ["Run Actor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/inputSchema"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Enter your Apify token here"
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "profileScraperMode": {
+            "title": "Profile Scraper Mode",
+            "enum": ["Short", "Full", "Full + email search"],
+            "type": "string",
+            "description": "Choose the mode for scraping LinkedIn profiles. The Short mode provides basic information, while the Full mode includes full detailed profile data.",
+            "default": "Full"
+          },
+          "searchQuery": {
+            "title": "Search query (fuzzy search)",
+            "maxLength": 300,
+            "type": "string",
+            "description": "Query to search LinkedIn profiles. (e.g., `Founder`, `Marketing Manager`, `John Doe`). The query supports search operators: https://www.linkedin.com/help/linkedin/answer/a524335"
+          },
+          "maxItems": {
+            "title": "Maximum number of profiles to scrape",
+            "type": "integer",
+            "description": "Maximum number of profiles to scrape. The actor will stop scraping when this limit is reached."
+          },
+          "locations": {
+            "title": "Locations Filter",
+            "maxItems": 20,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn locations. Example: `San Francisco`. Use full country names (e.g. 'United Kingdom' not 'UK').",
+            "items": { "type": "string" }
+          },
+          "currentCompanies": {
+            "title": "Current Company Filter",
+            "maxItems": 10,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn companies. Provide full LinkedIn URLs.",
+            "items": { "type": "string" }
+          },
+          "pastCompanies": {
+            "title": "Past Company Filter",
+            "maxItems": 10,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn past companies. Provide full LinkedIn URLs.",
+            "items": { "type": "string" }
+          },
+          "schools": {
+            "title": "School Filter",
+            "maxItems": 10,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn schools. Example: `Stanford University`.",
+            "items": { "type": "string" }
+          },
+          "currentJobTitles": {
+            "title": "Current Job Title Filter",
+            "maxItems": 20,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn current job titles. Example: `Software Engineer`.",
+            "items": { "type": "string" }
+          },
+          "pastJobTitles": {
+            "title": "Past Job Title Filter",
+            "maxItems": 20,
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn past job titles. Example: `Software Engineer`.",
+            "items": { "type": "string" }
+          },
+          "yearsOfExperienceIds": {
+            "title": "Years of Experience Filter",
+            "type": "array",
+            "description": "Filter by years of experience. 1=Less than 1 year, 2=1 to 2 years, 3=3 to 5 years, 4=6 to 10 years, 5=More than 10 years.",
+            "items": {
+              "type": "string",
+              "enum": ["1", "2", "3", "4", "5"]
+            }
+          },
+          "yearsAtCurrentCompanyIds": {
+            "title": "Years at Current Company Filter",
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Filter by years at current company. 1=Less than 1 year, 2=1 to 2 years, 3=3 to 5 years, 4=6 to 10 years, 5=More than 10 years.",
+            "items": {
+              "type": "string",
+              "enum": ["1", "2", "3", "4", "5"]
+            }
+          },
+          "seniorityLevelIds": {
+            "title": "Seniority Level Filter",
+            "type": "array",
+            "description": "Filter by seniority level. 100=In Training, 110=Entry Level, 120=Senior, 130=Strategic, 200=Entry Level Manager, 210=Experienced Manager, 220=Director, 300=VP, 310=CXO, 320=Owner/Partner.",
+            "items": {
+              "type": "string",
+              "enum": ["100", "110", "120", "130", "200", "210", "220", "300", "310", "320"]
+            }
+          },
+          "functionIds": {
+            "title": "Function Filter",
+            "type": "array",
+            "description": "Filter by function. 1=Accounting, 2=Administrative, 3=Arts/Design, 4=Business Dev, 5=Community, 6=Consulting, 7=Education, 8=Engineering, 9=Entrepreneurship, 10=Finance, 11=Healthcare, 12=HR, 13=IT, 14=Legal, 15=Marketing, 16=Media, 17=Military, 18=Operations, 19=Product Mgmt, 20=Program Mgmt, 21=Purchasing, 22=QA, 23=Real Estate, 24=Research, 25=Sales, 26=Customer Success.",
+            "items": {
+              "type": "string",
+              "enum": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26"]
+            }
+          },
+          "industryIds": {
+            "title": "Industry IDs Filter",
+            "maxItems": 20,
+            "type": "array",
+            "description": "Filter by LinkedIn industry IDs. Example: `4` for Software Development. Full list: https://github.com/HarvestAPI/linkedin-industry-codes-v2/blob/main/linkedin_industry_code_v2_all_eng_with_header.csv",
+            "items": { "type": "string" }
+          },
+          "firstNames": {
+            "title": "First Names Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastNames": {
+            "title": "Last Names Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "profileLanguages": {
+            "title": "Profile Languages Filter",
+            "type": "array",
+            "description": "Filter Profiles by these LinkedIn profile languages.",
+            "items": {
+              "type": "string",
+              "enum": ["Arabic","English","Spanish","Portuguese","Chinese","French","Italian","Russian","German","Dutch","Turkish","Tagalog","Polish","Korean","Japanese","Malay","Norwegian","Danish","Romanian","Swedish","Bahasa Indonesia","Czech"]
+            }
+          },
+          "companyHeadcount": {
+            "title": "Company Headcount Filter",
+            "type": "array",
+            "description": "Filter by current company headcount. A=Self-Employed, B=1-10, C=11-50, D=51-200, E=201-500, F=501-1000, G=1001-5000, H=5001-10000, I=10001+.",
+            "items": {
+              "type": "string",
+              "enum": ["A","B","C","D","E","F","G","H","I"]
+            }
+          },
+          "recentlyChangedJobs": {
+            "title": "Recently Changed Jobs Filter",
+            "type": "boolean",
+            "description": "Filter Profiles to only those who have recently changed jobs."
+          },
+          "excludeLocations": {
+            "title": "Exclude Locations Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludeCurrentCompanies": {
+            "title": "Exclude Current Company Filter",
+            "maxItems": 10,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludePastCompanies": {
+            "title": "Exclude Past Company Filter",
+            "maxItems": 10,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludeSchools": {
+            "title": "Exclude School Filter",
+            "maxItems": 10,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludeCurrentJobTitles": {
+            "title": "Exclude Current Job Title Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludePastJobTitles": {
+            "title": "Exclude Past Job Title Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludeIndustryIds": {
+            "title": "Exclude Industry IDs Filter",
+            "maxItems": 20,
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "excludeSeniorityLevelIds": {
+            "title": "Exclude Seniority Level Filter",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["100","110","120","130","200","210","220","300","310","320"]
+            }
+          },
+          "excludeFunctionIds": {
+            "title": "Exclude Function Filter",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26"]
+            }
+          },
+          "startPage": {
+            "title": "Start Page",
+            "minimum": 1,
+            "maximum": 100,
+            "type": "integer",
+            "description": "The page number to start scraping from.",
+            "default": 1
+          },
+          "takePages": {
+            "title": "Scrape search pages",
+            "minimum": 0,
+            "maximum": 100,
+            "type": "integer",
+            "description": "The number of search pages to scrape. Each page contains 25 profiles."
+          },
+          "autoQuerySegmentation": {
+            "title": "Enable Automatic Query Segmentation",
+            "type": "boolean",
+            "description": "Enable automatic query segmentation to split broad search queries into smaller segments based on LinkedIn filters."
+          },
+          "autoQuerySegmentationLevels": {
+            "title": "Automatic Query Segmentation Levels",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["default","country","state","seniority_level","industry"]
+            }
+          },
+          "autoQuerySegmentationTargetCountries": {
+            "title": "Target Countries for Automatic Query Segmentation",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["US","IN","BR","CN","GB","FR","CA","ID","MX","IT","ES","AU","DE","TR","NL","PH","CO","AR","ZA","CL","MY","NG","AE","EG","BE","SE","SA","PL","PT","CH","KR","DK","RO","SG","JP","TW","IE","KE","NZ","IL","NO","AT","FI"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
