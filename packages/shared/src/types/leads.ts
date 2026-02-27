@@ -5,6 +5,7 @@ export type SignalType =
   | "funding"
   | "role_change"
   | "event"
+  | "icp_match"
 
 export type SignalStrength = "critical" | "high" | "medium" | "low"
 
@@ -13,6 +14,7 @@ export type SignalCategory =
   | "content-creation"
   | "career-changes"
   | "hiring"
+  | "icp-match"
 
 export type LeadStatus = "new" | "viewed" | "saved" | "dismissed"
 
