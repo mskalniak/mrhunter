@@ -51,6 +51,7 @@ export type Lead = {
   name: string
   headline: string
   company: string
+  photo_url: string | null
   intent_score: number
   intent_summary: string
   signal_types: SignalType[]

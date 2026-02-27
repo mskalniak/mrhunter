@@ -52,6 +52,7 @@ If none match, return [].`,
             const post = posts[idx]
             if (!post) continue
 
+            const avatar = post.author.avatar
             signals.push({
               detectorId: "2.5",
               signalType: "pain_point",
@@ -59,6 +60,8 @@ If none match, return [].`,
               scorePoints: 45,
               linkedinUrl: post.author.linkedinUrl,
               name: post.author.name,
+              headline: post.author.info,
+              photoUrl: typeof avatar === "string" ? avatar : avatar?.url,
               title: `Frustrated with ${competitor}`,
               snippet: post.content.slice(0, 300),
               sourceUrl: post.linkedinUrl,

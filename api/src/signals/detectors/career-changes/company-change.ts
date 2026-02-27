@@ -40,6 +40,7 @@ export const companyChange: SignalDetector = {
         name: `${profile.firstName} ${profile.lastName}`,
         headline: profile.headline,
         company: current.companyName,
+        photoUrl: profile.photo ?? profile.profilePicture?.url,
         title: `Moved from ${previous.companyName} to ${current.companyName}`,
         snippet: `${profile.firstName} ${profile.lastName} recently moved from ${previous.companyName} (${previous.position}) to ${current.companyName} (${current.position})`,
         sourceUrl: profile.linkedinUrl,

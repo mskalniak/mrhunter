@@ -43,6 +43,7 @@ export const titleChangeDecisionMaker: SignalDetector = {
         name: `${profile.firstName} ${profile.lastName}`,
         headline: profile.headline,
         company: current.companyName,
+        photoUrl: profile.photo ?? profile.profilePicture?.url,
         title: `New ${current.position} at ${current.companyName}`,
         snippet: `Started as ${current.position} at ${current.companyName}${current.startDate.text ? ` (${current.startDate.text})` : ""}`,
         sourceUrl: profile.linkedinUrl,

@@ -28,7 +28,7 @@ function DashboardOrOnboarding() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-white/40">Loading...</p>
+        <p className="text-gray-400">Loading...</p>
       </div>
     )
   }

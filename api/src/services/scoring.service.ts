@@ -50,10 +50,10 @@ export async function scoreLeads(
           content: `You are a B2B lead scoring expert. Score these LinkedIn search results against the given Ideal Customer Profile.
 
 ICP:
-- Target titles: ${parsedConfig.titles.join(", ")}
-- Industries: ${parsedConfig.industries.join(", ")}
-- Keywords: ${parsedConfig.keywords.join(", ")}
-- Competitors: ${parsedConfig.competitors.join(", ") || "none specified"}
+- Target titles: ${(parsedConfig.titles ?? []).join(", ") || "not specified"}
+- Industries: ${(parsedConfig.industries ?? []).join(", ") || "not specified"}
+- Keywords: ${(parsedConfig.keywords ?? []).join(", ") || "not specified"}
+- Competitors: ${(parsedConfig.competitors ?? []).join(", ") || "none specified"}
 ${parsedConfig.company_size ? `- Company size: ${parsedConfig.company_size}` : ""}
 ${parsedConfig.location ? `- Location: ${parsedConfig.location}` : ""}
 
@@ -92,10 +92,13 @@ If no valid leads exist in this batch, return an empty array [].`,
     if (jsonMatch) {
       try {
         const leads: ScoredLead[] = JSON.parse(jsonMatch[0])
+        console.log(`[scoring] Batch scored: ${leads.length} leads from ${batch.length} results`)
         allLeads.push(...leads)
-      } catch {
-        console.error("Failed to parse scoring response:", text.slice(0, 200))
+      } catch (e) {
+        console.error("[scoring] Failed to parse scoring response:", text.slice(0, 500))
       }
+    } else {
+      console.error("[scoring] No JSON array found in Claude response:", text.slice(0, 500))
     }
   }
 

@@ -8,12 +8,7 @@ import { supabase } from "@/lib/supabase"
 import { AppRoutes } from "@/routes"
 
 function getApiUrl() {
-  const configured = import.meta.env.VITE_API_URL
-  if (configured) return configured
-  if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:3001`
-  }
-  return "http://localhost:3001"
+  return import.meta.env.VITE_API_URL || ""
 }
 
 configureApi({

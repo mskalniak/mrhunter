@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { ExternalLink, Bookmark, X, FileText } from "lucide-react"
 import type { Lead, SignalType } from "../types"
 
@@ -27,9 +28,22 @@ function getInitials(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, photoUrl }: { name: string; photoUrl?: string | null }) {
+  const [imgError, setImgError] = useState(false)
   const initials = getInitials(name)
   const color = getAvatarColor(name)
+
+  if (photoUrl && !imgError) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+        onError={() => setImgError(true)}
+      />
+    )
+  }
+
   return (
     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${color} text-xs font-bold text-white`}>
       {initials}
@@ -83,7 +97,7 @@ export function LeadCard({ lead, onSave, onDismiss, onClick }: LeadCardProps) {
       className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white/60 p-4 backdrop-blur-sm transition-colors hover:bg-white/80 cursor-pointer"
       onClick={() => onClick(lead.id)}
     >
-      <Avatar name={lead.name || "?"} />
+      <Avatar name={lead.name || "?"} photoUrl={lead.photo_url} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">

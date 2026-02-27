@@ -56,6 +56,7 @@ If none match, return [].`,
           const post = posts[idx]
           if (!post) continue
 
+          const avatar = post.author.avatar
           signals.push({
             detectorId: "3.3",
             signalType: "role_change",
@@ -63,6 +64,8 @@ If none match, return [].`,
             scorePoints: 45,
             linkedinUrl: post.author.linkedinUrl,
             name: post.author.name,
+            headline: post.author.info,
+            photoUrl: typeof avatar === "string" ? avatar : avatar?.url,
             title: "New role matching your ICP",
             snippet: post.content.slice(0, 300),
             sourceUrl: post.linkedinUrl,

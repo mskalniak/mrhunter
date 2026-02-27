@@ -10,11 +10,16 @@ export function useSearchRun() {
         method: "POST",
       }),
     onSuccess: () => {
-      // Refetch leads after a delay to allow pipeline to complete
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["leads"] })
-        queryClient.invalidateQueries({ queryKey: ["search-history"] })
-      }, 5000)
+      // Poll for results — pipeline can take 30+ seconds
+      const poll = (attempts: number) => {
+        if (attempts >= 12) return // stop after ~60s
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["leads"] })
+          queryClient.invalidateQueries({ queryKey: ["search-history"] })
+          poll(attempts + 1)
+        }, 5000)
+      }
+      poll(0)
     },
   })
 }

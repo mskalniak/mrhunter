@@ -27,6 +27,7 @@ export const competitorPostComment: SignalDetector = {
             linkedinUrl: comment.actor.linkedinUrl,
             name: comment.actor.name,
             headline: comment.actor.position,
+            photoUrl: comment.actor.pictureUrl,
             title: `Commented on ${competitor} post`,
             snippet: comment.commentary.slice(0, 300),
             sourceUrl: post.linkedinUrl,

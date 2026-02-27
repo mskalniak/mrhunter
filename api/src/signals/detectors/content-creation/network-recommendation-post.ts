@@ -15,13 +15,18 @@ export const networkRecommendationPost: SignalDetector = {
     const { keywords } = ctx.icpProfile
     const claude = getClaudeClient()
 
-    const allPosts = ctx.data.recommendationPosts.map((p, i) => ({
-      index: i,
-      name: p.author.name,
-      content: p.content.slice(0, 300),
-      authorUrl: p.author.linkedinUrl,
-      postUrl: p.linkedinUrl,
-    }))
+    const allPosts = ctx.data.recommendationPosts.map((p, i) => {
+      const avatar = p.author.avatar
+      return {
+        index: i,
+        name: p.author.name,
+        headline: p.author.info,
+        content: p.content.slice(0, 300),
+        authorUrl: p.author.linkedinUrl,
+        postUrl: p.linkedinUrl,
+        photoUrl: typeof avatar === "string" ? avatar : avatar?.url,
+      }
+    })
 
     if (allPosts.length === 0) return signals
 
@@ -60,6 +65,8 @@ If none match, return [].`,
             scorePoints: 50,
             linkedinUrl: post.authorUrl,
             name: post.name,
+            headline: post.headline,
+            photoUrl: post.photoUrl,
             title: "Asking network for tool recommendations",
             snippet: post.content,
             sourceUrl: post.postUrl,

@@ -64,7 +64,7 @@ export function LeadsDashboard() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="animate-spin text-white/40" size={32} />
+        <Loader2 className="animate-spin text-gray-400" size={32} />
       </div>
     )
   }
@@ -82,9 +82,9 @@ export function LeadsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Leads</h1>
+          <h1 className="text-xl font-bold text-gray-900">Leads</h1>
           {latestRun && (
-            <p className="text-xs text-white/40">
+            <p className="text-xs text-gray-400">
               Last search: {new Date(latestRun.started_at).toLocaleString()}
               {latestRun.status === "completed" && ` \u00B7 ${latestRun.leads_created} new leads`}
             </p>
@@ -94,7 +94,7 @@ export function LeadsDashboard() {
         <button
           onClick={handleRunSearch}
           disabled={searchRun.isPending || isSearching}
-          className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-purple-700 disabled:opacity-50"
         >
           <RefreshCw size={14} className={isSearching ? "animate-spin" : ""} />
           {isSearching ? "Searching..." : "Run Search"}
@@ -112,8 +112,8 @@ export function LeadsDashboard() {
       {data?.leads.length === 0 ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="text-center">
-            <p className="text-sm text-white/50">No leads found yet.</p>
-            <p className="mt-1 text-xs text-white/30">
+            <p className="text-sm text-gray-500">No leads found yet.</p>
+            <p className="mt-1 text-xs text-gray-400">
               {isSearching
                 ? "A search is running \u2014 leads will appear soon."
                 : "Click 'Run Search' to find leads matching your ICP."}

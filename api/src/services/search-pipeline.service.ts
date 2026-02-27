@@ -47,6 +47,7 @@ export async function runSearchPipeline(
   try {
     // 3. Execute Serper searches
     const queries: string[] = icp.search_queries ?? []
+    console.log(`[pipeline] Running ${queries.length} search queries`)
     const { results, totalQueries } = await searchLinkedInSignals(queries)
 
     // 4. Flatten results into signals with type classification
@@ -59,6 +60,7 @@ export async function runSearchPipeline(
 
     for (const { query, items } of results) {
       const signalType = classifyQuerySignalType(query)
+      console.log(`[pipeline] Query "${query.slice(0, 60)}..." → ${items.length} results (${signalType})`)
       for (const item of items) {
         allSearchResults.push({
           title: item.title,
@@ -68,6 +70,7 @@ export async function runSearchPipeline(
         })
       }
     }
+    console.log(`[pipeline] Total search results: ${allSearchResults.length}`)
 
     // 5. Store raw signals
     const signalInserts = allSearchResults.map((r) => ({
@@ -93,7 +96,12 @@ export async function runSearchPipeline(
     }
 
     // 6. Score leads with Claude
+    console.log(`[pipeline] Scoring ${allSearchResults.length} results with Claude...`)
     const scoredLeads = await scoreLeads(icp.parsed_config, allSearchResults)
+    console.log(`[pipeline] Claude returned ${scoredLeads.length} scored leads`)
+    if (scoredLeads.length > 0) {
+      console.log(`[pipeline] Sample lead:`, JSON.stringify(scoredLeads[0], null, 2))
+    }
 
     // 7. Upsert leads and link signals
     let leadsCreated = 0
@@ -170,6 +178,8 @@ export async function runSearchPipeline(
     }
 
     // 8. Update search run as completed
+    console.log(`[pipeline] Done! Queries: ${totalQueries}, Signals: ${insertedSignals.length}, Leads created: ${leadsCreated}`)
+
     await supabaseAdmin
       .from("search_runs")
       .update({

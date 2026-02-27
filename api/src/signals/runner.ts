@@ -401,6 +401,19 @@ export async function runSignalDetection(
         ...new Set(personSignals.map((ps) => ps.signal.signalType)),
       ]
 
+      // Resolve photo: try signal photoUrl first, then fullProfiles lookup
+      const fullProfile = data.fullProfiles.get(linkedinUrl)
+      const photoUrl =
+        personSignals.find((ps) => ps.signal.photoUrl)?.signal.photoUrl ??
+        fullProfile?.photo ?? fullProfile?.profilePicture?.url ??
+        null
+
+      // Resolve headline & company: prefer signal data, fall back to fullProfiles
+      const headline =
+        topSignal.headline || fullProfile?.headline || ""
+      const company =
+        topSignal.company || fullProfile?.currentPosition?.[0]?.companyName || ""
+
       // Build intent_summary
       const intentSummary =
         personSignals.length === 1
@@ -410,7 +423,7 @@ export async function runSignalDetection(
       // Check if lead already exists
       const { data: existing } = await supabaseAdmin
         .from("leads")
-        .select("id, intent_score, signal_types")
+        .select("id, intent_score, signal_types, photo_url, headline, company")
         .eq("user_id", userId)
         .eq("linkedin_url", linkedinUrl)
         .single()
@@ -430,6 +443,9 @@ export async function runSignalDetection(
             intent_score: newScore,
             intent_summary: intentSummary,
             signal_types: mergedSignalTypes,
+            ...(photoUrl && !existing.photo_url ? { photo_url: photoUrl } : {}),
+            ...(headline && !existing.headline ? { headline } : {}),
+            ...(company && !existing.company ? { company } : {}),
             last_seen_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
@@ -444,9 +460,10 @@ export async function runSignalDetection(
           .insert({
             user_id: userId,
             linkedin_url: linkedinUrl,
-            name: topSignal.name ?? "Unknown",
-            headline: topSignal.headline ?? "",
-            company: topSignal.company ?? "",
+            name: topSignal.name ?? (fullProfile ? `${fullProfile.firstName} ${fullProfile.lastName}` : "Unknown"),
+            headline,
+            company,
+            photo_url: photoUrl,
             intent_score: totalScore,
             intent_summary: intentSummary,
             signal_types: signalTypes,

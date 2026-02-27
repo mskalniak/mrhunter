@@ -49,6 +49,7 @@ export type DetectedSignal = {
   name?: string
   headline?: string
   company?: string
+  photoUrl?: string
   title: string
   snippet: string
   sourceUrl: string

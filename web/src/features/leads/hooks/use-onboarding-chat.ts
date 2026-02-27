@@ -111,10 +111,10 @@ export function useOnboardingChat() {
     completeMutation.mutate()
   }, [completeMutation])
 
+  // Enable after first question — Claude auto-extracts these from the first message
   const hasRequiredFields =
-    onboardingState.competitors.length > 0 &&
-    onboardingState.targetJobTitles.length > 0 &&
-    onboardingState.targetIndustries.length > 0 &&
+    onboardingState.targetJobTitles.length > 0 ||
+    onboardingState.targetIndustries.length > 0 ||
     onboardingState.problemKeywords.length > 0
 
   return {
